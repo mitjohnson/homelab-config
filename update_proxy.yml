@@ -1,6 +1,6 @@
 ---
 - name: Update Traefik
-  hosts: docker_server02
+  hosts: all
   gather_facts: false
   become: true
   roles:

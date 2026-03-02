@@ -1,6 +1,6 @@
 ---
 - name: Update all containers
-  hosts: docker_containers
+  hosts: all
   gather_facts: false
   serial: 1
   become: true
