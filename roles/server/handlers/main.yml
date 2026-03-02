@@ -1,0 +1,14 @@
+- name: Reload SSH
+  ansible.builtin.service:
+    name: sshd
+    state: reloaded
+
+- name: restart-docker
+  ansible.builtin.service:
+    name: docker
+    state: reloaded
+  
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded

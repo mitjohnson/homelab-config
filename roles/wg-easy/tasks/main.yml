@@ -2,7 +2,17 @@
 
 - name: Copy docker-compose.yaml
   become: true
-  ansible.builtin.template:
-    src: docker-compose.yaml.j2
-    dest: /srv/docker-compose-wg-easy.yaml
+  ansible.builtin.copy:
+    src: docker-compose.yaml
+    dest: /srv/prod/docker-compose-wg-easy.yaml
     mode: "0600"
+
+- name: Ensure required modules are loaded
+  become: true
+  ansible.builtin.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - ip6_tables
+    - ip_tables
+

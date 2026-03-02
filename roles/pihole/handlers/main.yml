@@ -1,5 +1,0 @@
-- name: Restart_docker
-  become: true
-  community.docker.docker_compose_v2:
-    project_src: /srv/
-    recreate: always

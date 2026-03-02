@@ -1,0 +1,68 @@
+http:
+  routers:
+    adguard:
+      entryPoints:
+        - https
+      rule: Host(`dns.jhomelab.net`)
+      middlewares:
+        - default-headers
+      tls: {}
+      service: adguard
+    home-assistant:
+      entryPoints:
+        - https
+      rule: Host(`ha.jhomelab.net`)
+      tls: {}
+      service: home-assistant
+  services:
+    adguard:
+      loadBalancer:
+        servers:
+          - url: http://172.18.0.1:8080
+        passHostHeader: true
+    home-assistant:
+      loadBalancer:
+        servers:
+          - url: http://172.18.0.1:8123
+        passHostHeader: true
+  middlewares:
+    compress:
+      compress: {}
+    default-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        stsSeconds: 2592000
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-For: Client-IP 
+          X-Forwarded-Proto: https
+    sso:
+      forwardAuth:
+        address: http://ak-outpost-domain-forward-auth:9000/outpost.goauthentik.io/auth/traefik
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-authentik-username
+          - X-authentik-groups
+          - X-authentik-entitlements
+          - X-authentik-email
+          - X-authentik-name
+          - X-authentik-uid
+          - X-authentik-jwt
+          - X-authentik-meta-jwks
+          - X-authentik-meta-outpost
+          - X-authentik-meta-provider
+          - X-authentik-meta-app
+          - X-authentik-meta-version
+tls:
+    options:
+        default:
+            cipherSuites:
+                - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+                - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+                - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+            sniStrict: true

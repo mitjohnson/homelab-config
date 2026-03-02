@@ -1,0 +1,9 @@
+---
+services:
+  vaultwarden:
+    container_name: vaultwarden
+    image: vaultwarden/server:latest
+    volumes:
+      - '/srv/prod/vaultwarden/data/:/data/'
+    ports:
+      - "{{ web_port }}"

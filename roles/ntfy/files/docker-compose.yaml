@@ -1,0 +1,32 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    networks:
+      - proxy
+    command:
+      - serve
+    environment:
+      NTFY_BASE_URL: https://ntfy.jhomelab.net 
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
+      NTFY_BEHIND_PROXY: true
+      NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+      NTFY_ENABLE_LOGIN: true
+    volumes:
+      - /srv/prod/cache/ntfy:/var/lib/ntfy
+      - /srv/prod/ntfy:/etc/ntfy
+    restart: unless-stopped
+    init: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntfy.tls=true"
+      - "traefik.http.routers.ntfy.rule=Host(`ntfy.jhomelab.net`)"
+      - "traefik.http.routers.ntfy.entrypoints=https"
+      - "traefik.http.routers.ntfy.service=ntfy"
+      - "traefik.http.routers.ntfy.middlewares=default-headers@file,compress@file"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true

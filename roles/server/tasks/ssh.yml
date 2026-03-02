@@ -1,0 +1,12 @@
+---
+
+- name: Add hardened SSH config
+  tags: security
+  ansible.builtin.template:
+    dest: /etc/ssh/sshd_config
+    src: sshd_config.j2
+    owner: root
+    group: root
+    mode: "0600"
+    backup: true
+  notify: Reload SSH

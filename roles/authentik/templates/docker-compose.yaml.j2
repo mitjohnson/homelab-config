@@ -1,0 +1,116 @@
+---
+
+services:
+  postgresql:
+    container_name: authentik-db
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    networks:
+      - backend
+    volumes:
+      - /srv/prod/authentik/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD={{ PG_PASS }}
+      - POSTGRES_USER=authentik
+      - POSTGRES_DB=authentik
+  redis:
+    container_name: authentik-redis
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    networks:
+      - backend
+    volumes:
+      - /srv/prod/authentik/redis:/data
+  server:
+    container_name: authentik
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.1}
+    restart: unless-stopped
+    command: server
+    environment:
+      - AUTHENTIK_SECRET_KEY={{ AUTHENTIK_SECRET_KEY }}
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD={{ PG_PASS }}
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+      - AUTHENTIK_EMAIL__HOST={{ EMAIL_SERVER }}
+      - AUTHENTIK_EMAIL__PORT=25
+      - AUTHENTIK_EMAIL__USERNAME={{ EMAIL_USERNAME }}
+      - AUTHENTIK_EMAIL__PASSWORD={{ EMAIL_PASSWORD }}
+      - AUTHENTIK_EMAIL__USE_TLS=true
+      - AUTHENTIK_EMAIL__USE_SSL=false
+      - AUTHENTIK_EMAIL__TIMEOUT=10
+      - AUTHENTIK_EMAIL__FROM=authentik@jhomelab.net
+    networks:
+        - proxy
+        - backend
+    volumes:
+      - /srv/prod/authentik/media:/media
+      - /srv/prod/authentik/custom-templates:/templates
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.authentik.entrypoints=https"
+        - "traefik.http.routers.authentik.rule=Host(`sso.jhomelab.net`)"
+        - "traefik.http.routers.authentik.service=authentik"
+        - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+        - "traefik.http.routers.authentik.middlewares=default-headers@file"
+
+  worker:
+    container_name: authentik-worker
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.1}
+    restart: unless-stopped
+    command: worker
+    networks:
+        - backend
+    environment:
+      - AUTHENTIK_SECRET_KEY={{ AUTHENTIK_SECRET_KEY }}
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD={{ PG_PASS }}
+    # `user: root` and the docker socket volume are optional.
+    # See more for the docker socket integration here:
+    # https://goauthentik.io/docs/outposts/integrations/docker
+    # Removing `user: root` also prevents the worker from fixing the permissions
+    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
+    # (1000:1000 by default)
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/prod/authentik/media:/media
+      - /srv/prod/authentik/certs:/certs
+      - /srv/prod/authentik/custom-templates:/templates
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  proxy:
+    external: true
+  backend:
+    ipam:
+      config:
+        - subnet: "172.16.238.0/24"
+

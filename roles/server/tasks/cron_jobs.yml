@@ -1,0 +1,10 @@
+---
+- name: Automate Security updates
+  become: true
+  ansible.builtin.cron:
+    name: "Security updates"
+    user: root
+    minute: "0"
+    hour: "24"
+    job: "dnf update --security"
+
