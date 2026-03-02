@@ -1,0 +1,17 @@
+---
+- name: Pull repository containing the backup script
+  ansible.builtin.git:
+    repo: "https://github.com/user/repository.git"
+    dest: "/home/backup/repository"
+    version: main
+    update: yes
+  become: true
+
+- name: Create crontab entry for the backup user
+  ansible.builtin.cron:
+    name: "Backup script"
+    user: backup
+    minute: "0"
+    hour: "0"
+    job: "/home/backup/repository/backup_script.sh"
+

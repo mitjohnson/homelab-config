@@ -1,7 +1,7 @@
+---
 - name: Copy docker-compose.yaml
   become: true
   ansible.builtin.template:
     src: docker-compose.yaml.j2
-    dest: /srv/prod/docker-compose-home-assistant.yaml
-    mode: "0755"
-
+    dest: /srv/prod/docker-compose-authentik.yaml
+    mode: "0600"

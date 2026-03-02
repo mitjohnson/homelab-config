@@ -1,0 +1,31 @@
+---
+- name: Install Packages
+  ansible.builtin.include_tasks: packages.yml
+
+- name: Add Users and Groups
+  ansible.builtin.include_tasks: users.yml
+
+- name: Configure SSH
+  ansible.builtin.include_tasks: ssh.yml
+
+# - name: Manage cron jobs for backup user
+#   ansible.builtin.include_tasks: cron_jobs.yml
+
+- name: Check if Docker is installed
+  ansible.builtin.command: docker --version
+  register: docker_version
+  failed_when: false
+  changed_when: false
+
+- name: Show Docker installation status
+  ansible.builtin.debug:
+    msg: "Docker is installed. Version: {{ docker_version.stdout }}"
+  when: docker_version.rc == 0
+
+- name: Install Docker Engine
+  ansible.builtin.include_tasks: docker_engine.yml
+  when: ansible_facts['distribution'] != "Debian" and docker_version.rc !=0
+
+- name: set up firewalld
+  ansible.builtin.include_tasks: firewalld.yml
+  when: ansible_facts['distribution'] != "Debian"

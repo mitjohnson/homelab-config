@@ -1,61 +1,43 @@
 ---
 
-- name: Bring servers up to date.
-  hosts: All
-  become: true
-  pre_tasks:
-
-    - name: Patch servers
-      tags: always
-      ansible.builtin.apt:
-        update_cache: true
-        upgrade: dist
-        autoclean: true
-        autoremove: true
-
-- name: Install base packages and secure proxmox cluster.
-  hosts: proxmox_cluster
+- name: Configure server
+  hosts: main_server
   gather_facts: true
   become: true
   roles:
-    - role: base_linux_server
+    - role: server
 
-- name: Secure and install docker engine on docker servers.
-  hosts: docker_containers
-  gather_facts: true
-  become: true
-  tags: docker
-  roles:
-    - role: base_linux_server
 
 - name: Deploy containers
-  hosts: docker_server01
+  hosts: main_server
   gather_facts: false
   become: true
   pre_tasks:
     - name: Kill and remove previous containers
       community.docker.docker_compose_v2:
-        project_src: /srv/
+        project_src: /srv/prod
         check_files_existing: false
         state: absent
         remove_images: all
         remove_orphans: true
 
   roles:
-    - role: pihole
-    - role: vaultwarden
+    - role: adguard
     - role: wg-easy
+    - role: traefik
     - role: home_assistant
+    - role: simon
+    - role: ntfy
 
   tasks:
     - name: Add Compose files to .env
       ansible.builtin.script:
         cmd: scripts/compose.sh
-        chdir: /srv/
+        chdir: /srv/prod
 
     - name: Start containers
       community.docker.docker_compose_v2:
-        project_src: /srv/
+        project_src: /srv/prod
         check_files_existing: false
         pull: always
         state: present

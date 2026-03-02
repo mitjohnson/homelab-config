@@ -1,0 +1,30 @@
+---
+
+- name: Ensure all groups are created before creating users
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop: "{{ user_groups }}"
+  when: user_groups | length > 0
+
+- name: Create users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    uid: "{{ item.uid }}"
+    shell: "{{ item.shell | default(None) }}"
+    home: "{{ item.home | default(None) }}"
+    create_home: "{{ item.create_home | default(true) }}"
+    state: present
+  loop: "{{ users }}"
+  when: users | length > 0
+
+- name: Add SSH keys for users
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    state: present
+  loop: "{{ users }}"
+  when: users | length > 0 and item.ssh_key is defined
+
