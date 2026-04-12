@@ -28,6 +28,7 @@
     - role: home_assistant
     - role: simon
     - role: ntfy
+    - role: forgejo
 
   tasks:
     - name: Add Compose files to .env
