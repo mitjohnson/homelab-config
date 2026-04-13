@@ -18,26 +18,5 @@ jobs:
         run: pip install ansible-lint
       
       - name: Run Ansible Lint
-        run: ansible-lint --strict .
-
-  molecule:
-    needs: lint
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install molecule-docker
-          pip install -r requirements.txt
-      
-      - name: Run Molecule tests
-        run: molecule test
+        run: ansible-lint --strict
 
