@@ -7,4 +7,3 @@
     minute: "0"
     hour: "24"
     job: "dnf update --security"
-

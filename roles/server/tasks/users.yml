@@ -27,4 +27,3 @@
     state: present
   loop: "{{ users }}"
   when: users | length > 0 and item.ssh_key is defined
-

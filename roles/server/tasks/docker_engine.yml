@@ -16,7 +16,7 @@
 
 - name: ensure docker is stopped
   ansible.builtin.service:
-    name: docker 
+    name: docker
     state: stopped
 
 - name: ensure docker directory is created
@@ -27,7 +27,7 @@
     group: root
     mode: '0755'
 
-- name: update docker config
+- name: Update docker config.
   ansible.builtin.copy:
     dest: /etc/docker/daemon.json
     content: |
@@ -40,4 +40,3 @@
   ansible.builtin.service:
     name: docker
     state: started
-
