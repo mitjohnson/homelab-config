@@ -1,0 +1,13 @@
+---
+
+profile: production
+
+exclude_paths:
+  - .ansible/
+  - .git/
+  - .github/
+  - scripts/
+  - venv/
+
+kinds:
+  - playbook: "**/playbooks/*.{yml,yaml}"
