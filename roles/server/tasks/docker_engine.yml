@@ -14,18 +14,18 @@
       - docker-buildx-plugin
       - docker-compose-plugin
 
-- name: ensure docker is stopped
+- name: Ensure docker is stopped
   ansible.builtin.service:
     name: docker
     state: stopped
 
-- name: ensure docker directory is created
+- name: Ensure docker directory is created
   ansible.builtin.file:
     path: /srv/prod/docker
     state: directory
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
 
 - name: Update docker config.
   ansible.builtin.copy:
@@ -34,9 +34,10 @@
       {
         "data-root": "/srv/prod/docker"
       }
+    mode: "0755"
   notify: restart-docker
 
-- name: start docker
+- name: Start docker
   ansible.builtin.service:
     name: docker
     state: started

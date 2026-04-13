@@ -1,5 +1,4 @@
 ---
-
 - name: Copy docker-compose.yaml
   become: true
   ansible.builtin.copy:

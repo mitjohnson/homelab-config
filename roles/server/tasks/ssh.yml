@@ -1,5 +1,4 @@
 ---
-
 - name: Add hardened SSH config
   tags: security
   ansible.builtin.template:

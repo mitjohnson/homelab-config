@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure all groups are created before creating users
   ansible.builtin.group:
     name: "{{ item.name }}"

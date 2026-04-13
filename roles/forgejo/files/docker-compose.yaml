@@ -1,3 +1,4 @@
+---
 networks:
   forgejo:
     external: false
@@ -19,7 +20,7 @@ services:
       - /srv/prod/forgejo:/data
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - '222:22'
+      - "222:22"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.forgejo.tls=true"

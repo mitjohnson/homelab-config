@@ -1,5 +1,4 @@
 ---
-
 - name: Copy docker-compose.yaml
   become: true
   ansible.builtin.copy:
@@ -9,10 +8,9 @@
 
 - name: Ensure required modules are loaded
   become: true
-  ansible.builtin.modprobe:
+  community.general.modprobe:
     name: "{{ item }}"
     state: present
   loop:
     - ip6_tables
     - ip_tables
-

@@ -1,3 +1,4 @@
+---
 http:
   routers:
     adguard:
@@ -39,7 +40,7 @@ http:
         stsPreload: true
         customFrameOptionsValue: SAMEORIGIN
         customRequestHeaders:
-          X-Forwarded-For: Client-IP 
+          X-Forwarded-For: Client-IP
           X-Forwarded-Proto: https
     sso:
       forwardAuth:
@@ -59,10 +60,10 @@ http:
           - X-authentik-meta-app
           - X-authentik-meta-version
 tls:
-    options:
-        default:
-            cipherSuites:
-                - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-                - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-                - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-            sniStrict: true
+  options:
+    default:
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      sniStrict: true
