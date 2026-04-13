@@ -1,6 +1,6 @@
 /venv
 .vscode
 .vault_password
-hosts.ini
 /local_machine
-*ufw.yml
+.ansible/*
+.ansible
