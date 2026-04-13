@@ -1,3 +1,4 @@
+[![CI](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml/badge.svg)](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml)
 # Ansible
 
 Set of Ansible playbooks to manage my home server setup.
