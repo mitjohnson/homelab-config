@@ -1,3 +1,4 @@
+[![CI](https://git.jhomelab.net/mitchell/homelab-config/actions/workflows/ci.yaml/badge.svg)](https://git.jhomelab.net/mitchell//homelab-config/actions/workflows/ci.yaml)
 [![CI](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml/badge.svg)](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml)
 # Ansible
 
