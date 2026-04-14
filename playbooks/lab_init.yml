@@ -27,6 +27,7 @@
     - role: simon
     - role: ntfy
     - role: forgejo
+    - role: forgejo_runner
 
   tasks:
     - name: Add Compose files to .env
