@@ -1,29 +1,34 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["**.md"]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-      
-      - name: Install Ansible Lint
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: pip install ansible-lint
 
       - name: Create vault password
         run: echo "${{ secrets.VAULT_PASSWORD }}" > .vault_password
-      
+
       - name: Run Ansible Lint
         run: ansible-lint -c .ansible-lint.yaml
 
       - name: Remove vault password
         if: always()
         run: rm .vault_password
-

@@ -1,0 +1,28 @@
+services:
+  docker-in-docker:
+    image: docker:dind
+    container_name: 'docker_dind'
+    privileged: 'true'
+    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false']
+    restart: 'unless-stopped'
+
+  runner:
+    image: 'data.forgejo.org/forgejo/runner:11'
+    links:
+      - docker-in-docker
+    depends_on:
+      docker-in-docker:
+        condition: service_started
+    container_name: 'runner'
+    networks:
+      - forgejo
+    environment:
+      DOCKER_HOST: tcp://docker-in-docker:2375
+    volumes:
+      - /srv/prod/forgejo-runner/data:/data
+    restart: 'unless-stopped'
+    command: '/bin/sh -c "while : ; do sleep 1 ; done ;"'
+
+networks:
+  forgejo:
+    external: true
