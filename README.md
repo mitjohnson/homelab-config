@@ -1,4 +1,3 @@
-[![CI](https://git.jhomelab.net/mitchell/homelab-config/actions/workflows/ci.yaml/badge.svg)](https://git.jhomelab.net/mitchell/homelab-config/actions?workflow=ci.yaml&actor=0&status=0&branch=main)
 [![CI](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml/badge.svg)](https://github.com/mitjohnson/homelab-config/actions/workflows/ci.yaml)
 # Ansible
 
