@@ -1,9 +1,9 @@
 ---
-# - name: Add docker repository
-#   ansible.builtin.yum_repository:
-#     name: docker-ce
-#     baseurl: https://download.docker.com/linux/centos/docker-ce.repo
-#     description: Docker repository
+- name: Add Docker repository
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: "0644"
 
 - name: Install docker engine
   ansible.builtin.dnf:
@@ -13,31 +13,27 @@
       - containerd.io
       - docker-buildx-plugin
       - docker-compose-plugin
+    state: present
+    update_cache: true
 
-- name: Ensure docker is stopped
-  ansible.builtin.service:
-    name: docker
-    state: stopped
-
-- name: Ensure docker directory is created
+- name: Ensure custom docker directory is created
   ansible.builtin.file:
     path: /srv/prod/docker
     state: directory
     owner: root
     group: root
-    mode: "0755"
+    mode: "0711"
 
-- name: Update docker config.
+- name: Update docker data root.
   ansible.builtin.copy:
     dest: /etc/docker/daemon.json
     content: |
-      {
-        "data-root": "/srv/prod/docker"
-      }
-    mode: "0755"
+      { "data-root": "/srv/prod/docker" }
+    mode: "0644"
   notify: restart-docker
 
 - name: Start docker
   ansible.builtin.service:
     name: docker
     state: started
+    enabled: true

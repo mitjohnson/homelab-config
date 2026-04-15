@@ -1,0 +1,7 @@
+---
+- name: Execute linux base configuration.
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - linux.yml
+    - cron_maintenance.yml
+  when: ansible_facts["system"] == "Linux"

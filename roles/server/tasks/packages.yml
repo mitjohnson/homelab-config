@@ -1,6 +1,0 @@
----
-- name: Install packages using dnf
-  ansible.builtin.package:
-    name: "{{ item }}"
-    state: present
-  with_items: "{{ packages }}"

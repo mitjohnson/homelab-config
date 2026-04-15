@@ -1,0 +1,14 @@
+---
+- name: Setup Users.
+  ansible.builtin.include_tasks: users.yml
+
+- name: Install base packages.
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Setup Homebrew and neovim.
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - homebrew.yml
+    - neovim.yml

@@ -1,0 +1,32 @@
+---
+- name: Chheck if homebrew is installed.
+  ansible.builtin.command: brew --version
+  register: common_brew_check
+  failed_when: false
+  changed_when: false
+
+- name: Install homebrew dependencies.
+  become: true
+  ansible.builtin.package:
+    name:
+      - curl
+  when: common_brew_check.rc != 0
+
+- name: Install homebrew.
+  become_user: "{{ users[0].name }}"
+  become: false
+  ansible.builtin.shell: |
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  environment:
+    NONINTERACTIVE: "1"
+  args:
+    creates: /home/linuxbrew/.linuxbrew/bin/brew
+  when: common_brew_check != 0
+
+- name: Install Homebrew packages
+  become_user: "{{ users[0].name }}"
+  become: true
+  community.general.homebrew:
+    name: "{{ homebrew_packages }}"
+    path: "/home/linuxbrew/.linuxbrew/bin"
+    state: present

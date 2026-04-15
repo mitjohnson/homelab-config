@@ -1,0 +1,67 @@
+---
+# This will run via a cron-job on each individual machine using ansible-pull.
+- name: Automated Security and Package Maintenance
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Update all system packages
+      ansible.builtin.package:
+        name: "*"
+        state: latest # noqa: package-latest
+      register: system_update_result
+      ignore_errors: true
+
+    - name: Update Homebrew
+      community.general.homebrew:
+        update_homebrew: true
+        upgrade_all: true
+      become_user: "{{ users[0].name }}"
+      become: false
+      register: brew_update_result
+      ignore_errors: true
+
+    - name: Check for reboot requirement (Rocky/RHEL)
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_check
+      failed_when: false
+      changed_when: false
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Check for reboot requirement (Arch)
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: arch_reboot
+      when: ansible_facts['os_family'] == "Archlinux"
+
+    # --- NOTIFICATIONS ---
+
+    - name: Notify on FAILURE
+      ansible.builtin.uri:
+        url: "http://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
+        method: POST
+        headers:
+          Title: "🚨 Maintenance FAILED: {{ ansible_hostname }}"
+          Priority: urgent
+          Tags: "x,skull,rotating_light"
+        body: |
+          Automated updates failed on {{ ansible_hostname }}.
+          System Result: {{ 'FAILED' if system_update_result.failed else 'Success' }}
+          Brew Result: {{ 'FAILED' if brew_update_result.failed else 'Success' }}
+          Check the logs at /var/log/ansible-maintenance.log
+      when: system_update_result.failed or brew_update_result.failed
+
+    - name: Notify on REBOOT REQUIRED
+      ansible.builtin.uri:
+        url: "http://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
+        method: POST
+        headers:
+          Title: "♻️ Reboot Required: {{ ansible_hostname }}"
+          Priority: high
+          Tags: "warning,recycle"
+        body: "Updates finished successfully, but a reboot is required to apply the new kernel/libraries."
+      when: >
+        (not system_update_result.failed and not brew_update_result.failed) and
+        ((ansible_facts['os_family'] == "RedHat" and reboot_check.rc == 1) or
+         (ansible_facts['os_family'] == "Archlinux" and arch_reboot.stat.exists))

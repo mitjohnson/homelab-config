@@ -1,0 +1,22 @@
+---
+- name: Check if Neovim config is already present
+  ansible.builtin.stat:
+    path: "/home/mitch/.config/nvim/init.lua"
+  register: common_nvim_stat
+
+- name: Ensure nvim directory exists.
+  ansible.builtin.file:
+    path: "/home/mitch/.config/nvim/"
+    state: directory
+    mode: "0755"
+    owner: mitch
+    group: mitch
+  when: not common_nvim_stat.stat.exists
+
+- name: Pull neovim configs from github.
+  become: false
+  ansible.builtin.git:
+    repo: "https://github.com/{{ github_user }}/nvim-configs.git"
+    dest: "/home/mitch/.config/nvim"
+    version: main
+  when: not common_nvim_stat.stat.exists

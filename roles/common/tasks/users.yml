@@ -25,4 +25,6 @@
     key: "{{ item.ssh_key }}"
     state: present
   loop: "{{ users }}"
-  when: users | length > 0 and item.ssh_key is defined
+  when:
+    - users | length > 0
+    - item.ssh_key is defined
