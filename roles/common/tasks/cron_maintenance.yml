@@ -1,4 +1,20 @@
 ---
+- name: Ensure Ansible is installed
+  ansible.builtin.package:
+    name: "{{ 'ansible' if ansible_facts['os_family'] == 'Archlinux' else 'ansible-core' }}"
+    state: present
+  become: true
+
+- name: Create Ansible Vault password file for automation
+  ansible.builtin.copy:
+    content: "{{ vault_password }}"
+    dest: /root/.ansible_vault_pass
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true
+
 - name: Ensure cron is installed
   ansible.builtin.package:
     name: cronie
