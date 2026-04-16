@@ -21,12 +21,9 @@ jobs:
       - name: Install dependencies
         run: pip install ansible-lint
 
-      - name: Create vault password
-        run: echo "${{ secrets.VAULT_PASSWORD }}" > .vault_password
-
       - name: Run Ansible Lint
-        run: ansible-lint -c .ansible-lint.yaml
-
-      - name: Remove vault password
-        if: always()
-        run: rm .vault_password
+        env:
+          ANSIBLE_VAULT_PASSWORD: "${{ secrets.VAULT_PASSWORD }}"
+        run: |
+          chmod +x scripts/.vault_pass.sh
+          ansible-lint -c .ansible-lint.yaml
