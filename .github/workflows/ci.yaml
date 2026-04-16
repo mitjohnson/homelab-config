@@ -25,5 +25,5 @@ jobs:
         env:
           ANSIBLE_VAULT_PASSWORD: "${{ secrets.VAULT_PASSWORD }}"
         run: |
-          chmod +x scripts/.vault_pass.sh
+          chmod +x scripts/vault_pass.sh
           ansible-lint -c .ansible-lint.yaml
