@@ -3,24 +3,42 @@
 - name: Automated Security and Package Maintenance
   hosts: localhost
   connection: local
-  become: true
+
+  vars:
+    ntfy_url: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      35346238363162306564313337343865393965363638393732316434613432636539653766666537
+      6334613039363835653739623932323566306332333537330a636230323835343431613433376539
+      64643865653363376430383530663938636261666137663735373339396434366635306664333063
+      3633306437396630370a333131333138356362656231633834386336353338653330323739333065
+      34653834333738303465623766336439343732363261366537653463383966653265
+
+    ntfy_maintenance_topic: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      34656664353564326564353661303130383863303465373938666234363732363731343931656530
+      3732313037663538356662323335356564373330643932360a353764393463323162313134366337
+      35353032303934613265353262303861636634306636396538386164313634306134623137336339
+      3036623137363063630a623031353064663331653661626232656239663734613639653634366265
+      61633761303839653736343331373061346232316337653837663633633561633733
 
   tasks:
-    - name: Update all system packages
-      ansible.builtin.package:
-        name: "*"
-        state: latest # noqa: package-latest
+    - name: Update all system packages (generic linux)
+      ansible.builtin.dnf:
+        state: latest
+        update_only: true
+        update_cache: true
+        security: true
       register: system_update_result
       ignore_errors: true
+      when: ansible_facts['os_family'] == "RedHat"
 
-    - name: Update Homebrew
-      community.general.homebrew:
-        update_homebrew: true
-        upgrade_all: true
-      become_user: "{{ users[0].name }}"
-      become: false
-      register: brew_update_result
+    - name: Update all system packages (arch)
+      community.general.pacman:
+        update_cache: true
+        upgrade: true
+      register: system_update_result
       ignore_errors: true
+      when: ansible_facts['os_family'] == "Archlinux"
 
     - name: Check for reboot requirement (Rocky/RHEL)
       ansible.builtin.command: needs-restarting -r
@@ -39,29 +57,29 @@
 
     - name: Notify on FAILURE
       ansible.builtin.uri:
-        url: "http://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
+        url: "https://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
         method: POST
         headers:
-          Title: "🚨 Maintenance FAILED: {{ ansible_hostname }}"
+          Title: "Maintenance FAILED: {{ ansible_facts['hostname'] }}"
+
           Priority: urgent
           Tags: "x,skull,rotating_light"
         body: |
-          Automated updates failed on {{ ansible_hostname }}.
+          Automated updates failed on {{ ansible_facts['hostname'] }}.
           System Result: {{ 'FAILED' if system_update_result.failed else 'Success' }}
-          Brew Result: {{ 'FAILED' if brew_update_result.failed else 'Success' }}
           Check the logs at /var/log/ansible-maintenance.log
-      when: system_update_result.failed or brew_update_result.failed
+      when: system_update_result is failed
 
     - name: Notify on REBOOT REQUIRED
       ansible.builtin.uri:
-        url: "http://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
+        url: "https://{{ ntfy_url }}/{{ ntfy_maintenance_topic }}"
         method: POST
         headers:
-          Title: "♻️ Reboot Required: {{ ansible_hostname }}"
+          Title: "Reboot Required: {{ ansible_facts['hostname'] }}"
           Priority: high
           Tags: "warning,recycle"
         body: "Updates finished successfully, but a reboot is required to apply the new kernel/libraries."
       when: >
-        (not system_update_result.failed and not brew_update_result.failed) and
+        system_update_result is not failed and
         ((ansible_facts['os_family'] == "RedHat" and reboot_check.rc == 1) or
          (ansible_facts['os_family'] == "Archlinux" and arch_reboot.stat.exists))

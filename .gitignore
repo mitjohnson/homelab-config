@@ -1,6 +1,6 @@
 /venv
 .vscode
-.vault_password
 /local_machine
 .ansible/*
 .ansible
+.env

@@ -25,7 +25,7 @@
   tasks:
     - name: Add Compose files to .env
       ansible.builtin.script:
-        cmd: scripts/compose.sh
+        cmd: ../scripts/compose.sh
         chdir: /srv/prod
 
     - name: Start containers
