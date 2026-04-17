@@ -8,10 +8,7 @@
   "configMigration": true,
   "prHourlyLimit": 0,
   "ansible": {
-    "managerFilePatterns": [
-      "/(^|/)files/[^/]+\\.ya?ml$/",
-      "/(^|/)templates/[^/]+\\.j2$/"
-    ]
+    "managerFilePatterns": ["/(^|/)templates/[^/]+\\.j2$/"]
   },
   "docker-compose": {
     "hostRules": [
@@ -22,3 +19,4 @@
     ]
   }
 }
+
