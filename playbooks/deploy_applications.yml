@@ -3,15 +3,6 @@
   hosts: hp_server
   gather_facts: false
   become: true
-  pre_tasks:
-    - name: Kill and remove previous containers
-      community.docker.docker_compose_v2:
-        project_src: /srv/prod
-        check_files_existing: false
-        state: absent
-        remove_images: all
-        remove_orphans: true
-
   roles:
     - role: adguard
     - role: wg_easy
@@ -34,3 +25,4 @@
         check_files_existing: false
         pull: always
         state: present
+        remove_orphans: true
