@@ -13,6 +13,7 @@
     - role: forgejo
     - role: forgejo_runner
     - role: ai
+    - role: vaultwarden
 
   tasks:
     - name: Add Compose files to .env

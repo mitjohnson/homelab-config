@@ -2,8 +2,14 @@
 services:
   vaultwarden:
     container_name: vaultwarden
-    image: vaultwarden/server:latest
+    image: vaultwarden/server:1.35.6
     volumes:
       - "/srv/prod/vaultwarden/data/:/data/"
-    ports:
-      - "{{ web_port }}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.tls=true"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vw.jhomelab.net`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=https"
+      - "traefik.http.routers.vaultwarden.service=vaultwarden"
+      - "traefik.http.routers.vaultwarden.middlewares=default-headers@file"
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
