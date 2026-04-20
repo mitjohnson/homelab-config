@@ -1,0 +1,6 @@
+- name: Copy docker-compose.yaml
+  become: true
+  ansible.builtin.copy:
+    src: docker-compose-ai.yaml
+    dest: /srv/prod/docker-compose-ai.yaml
+    mode: "0600"

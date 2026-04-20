@@ -12,6 +12,7 @@
     - role: ntfy
     - role: forgejo
     - role: forgejo_runner
+    - role: ai
 
   tasks:
     - name: Add Compose files to .env

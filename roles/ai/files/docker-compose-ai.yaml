@@ -1,0 +1,44 @@
+services:
+  ollama:
+    image: ollama/ollama:0.21.0
+    container_name: ollama
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.tls=true"
+      - "traefik.http.routers.ollama.rule=Host(`ai.jhomelab.net`)"
+      - "traefik.http.routers.ollama.entrypoints=https"
+      - "traefik.http.routers.ollama.service=ollama"
+      - "traefik.http.routers.ollama.middlewares=default-headers@file"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/open-webui:/app/backend/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.open-webui.tls=true"
+      - "traefik.http.routers.open-webui.rule=Host(`chat.jhomelab.net`)"
+      - "traefik.http.routers.open-webui.entrypoints=https"
+      - "traefik.http.routers.open-webui.service=open-webui"
+      - "traefik.http.routers.open-webui.middlewares=default-headers@file"
+      - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
+
+networks:
+  proxy:
+    external: true
