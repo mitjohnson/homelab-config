@@ -7,6 +7,15 @@
   "labels": ["renovate"],
   "configMigration": true,
   "prHourlyLimit": 0,
+  "automerge": true,
+  "automergeType": "pr",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "automergeStrategy": "squash"
+    }
+  ],
   "ansible": {
     "managerFilePatterns": ["/(^|/)templates/[^/]+\\.j2$/"]
   },
