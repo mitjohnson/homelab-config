@@ -1,7 +1,7 @@
 ---
 services:
   ntfy:
-    image: binwiederhier/ntfy
+    image: binwiederhier/ntfy:v2.21.0
     container_name: ntfy
     networks:
       - proxy

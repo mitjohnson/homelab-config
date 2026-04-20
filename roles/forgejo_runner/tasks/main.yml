@@ -12,7 +12,7 @@
   become: true
   ansible.builtin.file:
     dest: /srv/prod/forgejo-runner/data/.cache
-    state: touch
+    state: directory
     mode: '0755'
     access_time: preserve
 

@@ -24,6 +24,7 @@ services:
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
 
   openwebui:
+    # does not version packages well.
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     networks:
