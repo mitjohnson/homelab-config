@@ -2,7 +2,7 @@
 services:
   vaultwarden:
     container_name: vaultwarden
-    image: vaultwarden/server:1.35.6
+    image: vaultwarden/server:1.35.7
     networks:
       - proxy
     volumes:
