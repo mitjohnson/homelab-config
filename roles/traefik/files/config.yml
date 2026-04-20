@@ -19,12 +19,12 @@ http:
     adguard:
       loadBalancer:
         servers:
-          - url: http://172.18.0.1:8080
+          - url: http://host.docker.internal:8080
         passHostHeader: true
     home-assistant:
       loadBalancer:
         servers:
-          - url: http://172.18.0.1:8123
+          - url: http://host.docker.internal:8123
         passHostHeader: true
   middlewares:
     compress:
