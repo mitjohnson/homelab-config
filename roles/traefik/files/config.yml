@@ -6,13 +6,15 @@ http:
         - https
       rule: Host(`dns.jhomelab.net`)
       middlewares:
-        - default-headers
+        - chain-internal
       tls: {}
       service: adguard
     home-assistant:
       entryPoints:
         - https
       rule: Host(`ha.jhomelab.net`)
+      middlewares:
+        - chain-internal
       tls: {}
       service: home-assistant
   services:
@@ -31,7 +33,6 @@ http:
       compress: {}
     default-headers:
       headers:
-        frameDeny: true
         browserXssFilter: true
         contentTypeNosniff: true
         stsSeconds: 2592000
@@ -40,8 +41,21 @@ http:
         stsPreload: true
         customFrameOptionsValue: SAMEORIGIN
         customRequestHeaders:
-          X-Forwarded-For: Client-IP
           X-Forwarded-Proto: https
+        referrerPolicy: "same-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=()"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+    local-ipwhitelist:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"    # Localhost
+          - "10.5.15.0/24"  
+          - "172.16.0.0/12"   # Docker internal network
     sso:
       forwardAuth:
         address: http://ak-outpost-domain-forward-auth:9000/outpost.goauthentik.io/auth/traefik
@@ -59,9 +73,23 @@ http:
           - X-authentik-meta-provider
           - X-authentik-meta-app
           - X-authentik-meta-version
+    chain-internal:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - local-ipwhitelist
+    chain-public:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
 tls:
   options:
     default:
+      minVersion: VersionTLS12
       cipherSuites:
         - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384

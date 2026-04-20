@@ -37,7 +37,7 @@ services:
       - "traefik.http.routers.open-webui.rule=Host(`chat.jhomelab.net`)"
       - "traefik.http.routers.open-webui.entrypoints=https"
       - "traefik.http.routers.open-webui.service=open-webui"
-      - "traefik.http.routers.open-webui.middlewares=default-headers@file"
+      - "traefik.http.routers.open-webui.middlewares=chain-internal@file"
       - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
 
 networks:

@@ -19,6 +19,7 @@ services:
       - "traefik.http.routers.simon.rule=Host(`mon.jhomelab.net`)"
       - "traefik.http.routers.simon.entrypoints=https"
       - "traefik.http.routers.simon.service=simon"
+      - "traefik.http.routers.simon.middlewares=chain-internal@file"
       - "traefik.http.services.simon.loadbalancer.server.port=30000"
 
 networks:

@@ -24,7 +24,7 @@ services:
       - "traefik.http.routers.wg-easy.rule=Host(`vpn.jhomelab.net`)"
       - "traefik.http.routers.wg-easy.entrypoints=https"
       - "traefik.http.routers.wg-easy.service=wg-easy"
-      - "traefik.http.routers.wg-easy.middlewares=default-headers@file,compress@file"
+      - "traefik.http.routers.wg-easy.middlewares=chain-public@file"
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 networks:
