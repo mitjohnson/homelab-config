@@ -53,9 +53,9 @@ http:
     local-ipwhitelist:
       ipAllowList:
         sourceRange:
-          - "127.0.0.1/32"    # Localhost
-          - "10.5.15.0/24"  
-          - "172.16.0.0/12"   # Docker internal network
+          - "127.0.0.1/32" # Localhost
+          - "10.5.15.0/24"
+          - "172.16.0.0/12" # Docker internal network
     sso:
       forwardAuth:
         address: http://ak-outpost-domain-forward-auth:9000/outpost.goauthentik.io/auth/traefik
