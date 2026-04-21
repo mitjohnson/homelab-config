@@ -5,3 +5,10 @@
     src: docker-compose.yaml
     dest: /srv/prod/docker-compose-ntfy.yaml
     mode: "0600"
+
+- name: Place server.yml
+  become: true
+  ansible.builtin.copy:
+    src: server.yml
+    dest: /srv/prod/ntfy/server.yml
+    mode: "0600"
