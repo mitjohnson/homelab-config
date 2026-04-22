@@ -1,0 +1,45 @@
+---
+services:
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    volumes:
+      - /srv/prod/paperless/redisdata:/data
+    networks: 
+      backend:
+        ipv4_address: 172.16.238.10
+
+  webserver:
+    container_name: paperless
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.14
+    restart: unless-stopped
+    depends_on:
+      - broker
+    volumes:
+      - /srv/prod/paperlessngx/data:/usr/src/paperless/data
+      - /srv/prod/paperlessngx/media:/usr/src/paperless/media
+      - /srv/prod/paperlessngx/export:/usr/src/paperless/export
+      - /srv/prod/paperlessngx/consume:/usr/src/paperless/consume
+    networks:
+      proxy:
+        aliases:
+            - "paperless.{{ root_domain }}"
+      backend:
+    environment:
+      PAPERLESS_REDIS: redis://172.16.238.10:6379
+      PAPERLESS_URL: https://paperless.{{ root_domain }}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.entrypoints=https"
+      - "traefik.http.routers.paperless.rule=Host(`paperless.{{ root_domain }}`)"
+      - "traefik.http.routers.paperless.service=paperless"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+      - "traefik.http.routers.paperless.middlewares=chain-internal@file"
+
+networks:
+  backend:
+    ipam:
+      config:
+        - subnet: "172.16.238.0/24"
+  proxy:
+    external: true

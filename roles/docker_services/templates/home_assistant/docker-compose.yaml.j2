@@ -1,0 +1,48 @@
+---
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.4.3
+    container_name: homeassistant
+    network_mode: host
+    environment:
+      TZ: America/New_York
+    volumes:
+      - /srv/prod/home_assistant/config:/config
+
+  zwave-js-ui:
+    container_name: zwave-js-ui
+    depends_on: 
+      - homeassistant
+    image: zwavejs/zwave-js-ui:11.16.0
+    restart: always
+    tty: true
+    stop_signal: SIGINT
+    environment:
+      SESSION_SECRET: {{ SESSION_SECRET }}
+      TZ: America/New_York
+    networks:
+      - zwave
+      - proxy
+    devices:
+      # Z-wave smart stick
+      - '{{ ZWAVE_SMARTSTICK }}:/dev/zwave'
+    volumes:
+      - zwave-config:/usr/src/app/store
+    ports:
+      - 127.0.0.1:3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zwave.tls=true"
+      - "traefik.http.routers.zwave.entrypoints=https"
+      - "traefik.http.routers.zwave.rule=Host(`z.{{ root_domain }}`)"
+      - "traefik.http.routers.zwave.service=zwave"
+      - "traefik.http.services.zwave.loadbalancer.server.port=8091"
+
+volumes:
+    zwave-config:
+      name: zwave-config
+
+networks:
+  zwave:
+  proxy:
+    external: true

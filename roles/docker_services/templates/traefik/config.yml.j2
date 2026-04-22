@@ -1,0 +1,80 @@
+---
+http:
+  routers:
+    adguard:
+      entryPoints:
+        - https
+      rule: Host(`dns.{{ root_domain }}`)
+      middlewares:
+        - chain-internal
+      tls: {}
+      service: adguard
+    home-assistant:
+      entryPoints:
+        - https
+      rule: Host(`ha.{{ root_domain }}`)
+      middlewares:
+        - chain-internal
+      tls: {}
+      service: home-assistant
+  services:
+    adguard:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:8080
+        passHostHeader: true
+    home-assistant:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:8123
+        passHostHeader: true
+  middlewares:
+    compress:
+      compress: {}
+    default-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        stsSeconds: 2592000
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+        referrerPolicy: "same-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=()"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+    local-ipwhitelist:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32" # Localhost
+          - "{{ local_subnet }}"
+          - "172.16.0.0/12" # Docker internal network
+    chain-internal:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - local-ipwhitelist
+    chain-public:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      sniStrict: true

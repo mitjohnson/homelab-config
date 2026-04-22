@@ -1,0 +1,6 @@
+---
+- name: Configure Domain.
+  ansible.builtin.import_playbook: playbooks/configure_OS.yml
+
+- name: Deploy Applications.
+  ansible.builtin.import_playbook: playbooks/deploy_applications.yml

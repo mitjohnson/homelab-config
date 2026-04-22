@@ -1,0 +1,7 @@
+---
+- name: Place server.yml
+  become: true
+  ansible.builtin.copy:
+    src: ntfy/files/server.yml
+    dest: /srv/prod/ntfy/server.yml
+    mode: "0600"

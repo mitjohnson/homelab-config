@@ -1,0 +1,18 @@
+---
+- name: DEPLOY | Active Services
+  ansible.builtin.include_tasks: create_and_deploy_containers.yml
+  loop: "{{ services_to_run | default([]) }}"
+  loop_control:
+    loop_var: service_item
+    label: "{{ service_item }}"
+  vars:
+    service_state: present
+
+- name: REMOVE | Decommissioned Services
+  ansible.builtin.include_tasks: create_and_deploy_containers.yml
+  loop: "{{ services_to_remove | default([]) }}"
+  loop_control:
+    loop_var: service_item
+    label: :{{ service_item }}"
+  vars:
+    service_state: absent

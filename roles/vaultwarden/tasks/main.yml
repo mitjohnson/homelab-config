@@ -1,6 +1,0 @@
----
-- name: Place docker-compose file
-  ansible.builtin.copy:
-    src: docker-compose.yaml
-    dest: /srv/prod/docker-compose-vaultwarden.yaml
-    mode: "0600"

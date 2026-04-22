@@ -1,0 +1,43 @@
+---
+services:
+  traefik:
+    image: traefik:v3.7.0-rc.1
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      proxy:
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+    environment:
+      CF_DNS_API_TOKEN_FILE: /run/secrets/cf_api_token
+    secrets:
+      - cf_api_token
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /srv/prod/traefik/data/traefik.yml:/traefik.yml:ro
+      - /srv/prod/traefik/data/acme.json:/acme.json
+      - /srv/prod/traefik/data/config.yml:/config.yml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.{{ root_domain }}`)"
+      - "traefik.http.routers.traefik-secure.middlewares=chain-internal@file"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].main={{ root_domain }}"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.{{ root_domain }}"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+
+secrets:
+  cf_api_token:
+    file: /srv/prod/traefik/cloudflare_api_token.txt
+
+networks:
+  proxy:
+    external: true

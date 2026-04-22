@@ -1,0 +1,26 @@
+---
+services:
+  ntfy:
+    image: binwiederhier/ntfy:v2.21.0
+    container_name: ntfy
+    networks:
+      - proxy
+    command: serve
+    volumes:
+      - /srv/prod/ntfy/cache:/var/cache/ntfy
+      - /srv/prod/ntfy/lib:/var/lib/ntfy
+      - /srv/prod/ntfy:/etc/ntfy
+    restart: unless-stopped
+    init: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntfy.tls=true"
+      - "traefik.http.routers.ntfy.rule=Host(`ntfy.{{ root_domain }}`)"
+      - "traefik.http.routers.ntfy.entrypoints=https"
+      - "traefik.http.routers.ntfy.service=ntfy"
+      - "traefik.http.routers.ntfy.middlewares=chain-public@file"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true

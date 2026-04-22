@@ -1,0 +1,9 @@
+---
+- name: Ensure required modules are loaded
+  become: true
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - ip6_tables
+    - ip_tables

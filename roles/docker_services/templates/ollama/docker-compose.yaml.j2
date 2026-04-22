@@ -1,0 +1,29 @@
+---
+services:
+  ollama:
+    image: ollama/ollama:0.21.0
+    container_name: ollama
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.tls=true"
+      - "traefik.http.routers.ollama.rule=Host(`ai.{{ root_domain }}`)"
+      - "traefik.http.routers.ollama.entrypoints=https"
+      - "traefik.http.routers.ollama.service=ollama"
+      - "traefik.http.routers.ollama.middlewares=chain-internal@file"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+networks:
+  proxy:
+    external: true

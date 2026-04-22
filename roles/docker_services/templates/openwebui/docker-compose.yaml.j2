@@ -1,0 +1,22 @@
+---
+services:
+  openwebui:
+    # does not version packages well.
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/openwebui:/app/backend/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.open-webui.tls=true"
+      - "traefik.http.routers.open-webui.rule=Host(`chat.{{ root_domain }}`)"
+      - "traefik.http.routers.open-webui.entrypoints=https"
+      - "traefik.http.routers.open-webui.service=open-webui"
+      - "traefik.http.routers.open-webui.middlewares=chain-internal@file"
+      - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
+
+networks:
+  proxy:
+    external: true

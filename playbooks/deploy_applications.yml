@@ -1,30 +1,11 @@
 ---
 - name: Deploy containers
-  hosts: hp_server
+  hosts: all
   gather_facts: false
   become: true
-  roles:
-    - role: adguard
-    - role: wg_easy
-    - role: traefik
-    - role: home_assistant
-    - role: simon
-    - role: ntfy
-    - role: forgejo
-    - role: forgejo_runner
-    - role: ai
-    - role: vaultwarden
 
   tasks:
-    - name: Add Compose files to .env
-      ansible.builtin.script:
-        cmd: ../scripts/compose.sh
-        chdir: /srv/prod
-
-    - name: Start containers
-      community.docker.docker_compose_v2:
-        project_src: /srv/prod
-        check_files_existing: false
-        pull: always
-        state: present
-        remove_orphans: true
+    - name: Deploy Docker Services
+      ansible.builtin.include_role:
+        name: docker_services
+      when: services_to_run is defined

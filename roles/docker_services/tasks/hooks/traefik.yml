@@ -1,0 +1,37 @@
+---
+- name: Create traefik and data directories
+  ansible.builtin.file:
+    dest: /srv/prod/traefik/data/
+    state: directory
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Create acme.json file
+  ansible.builtin.file:
+    dest: /srv/prod/traefik/data/acme.json
+    state: touch
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Place traefik config file
+  tags: configs
+  ansible.builtin.template:
+    src: traefik/traefik.yml.j2
+    dest: /srv/prod/traefik/data/traefik.yml
+    mode: "0600"
+
+- name: Place file with cloudflare api token
+  tags: configs
+  ansible.builtin.template:
+    src: traefik/cf_api_token.txt.j2
+    dest: /srv/prod/traefik/cloudflare_api_token.txt
+    mode: "0600"
+
+- name: Create config.yml
+  tags: configs
+  ansible.builtin.template:
+    src: traefik/config.yml.j2
+    dest: /srv/prod/traefik/data/config.yml
+    mode: "0600"

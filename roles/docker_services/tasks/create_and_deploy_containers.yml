@@ -1,0 +1,35 @@
+---
+- name: "Ensure directory present: /srv/prod/{{ service_item }}"
+  ansible.builtin.file:
+    path: "/srv/prod/{{ service_item }}"
+    state: directory
+    mode: "0755"
+  when: service_state == 'present'
+
+- name: "Check if hook exists for {{ service_item }}"
+  become: true
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/hooks/{{ service_item }}.yml"
+  register: docker_services_hook
+  delegate_to: localhost
+
+- name: "Run additional setup hooks for {{ service_item }}"
+  ansible.builtin.include_tasks:
+    file: "hooks/{{ service_item }}.yml"
+  when:
+    - service_state == 'present'
+    - docker_services_hook.stat.exists
+
+- name: "Render docker-compose.yaml for {{ service_item }}"
+  ansible.builtin.template:
+    src: "{{ service_item }}/docker-compose.yaml.j2"
+    dest: "/srv/prod/{{ service_item }}/docker-compose.yaml"
+    mode: "0600"
+  when: service_state == 'present'
+  register: docker_services_compose_file
+
+- name: "Set state for: {{ service_item }}"
+  community.docker.docker_compose_v2:
+    project_src: "/srv/prod/{{ service_item }}"
+    state: "{{ service_state }}"
+    pull: "{{ 'missing' if service_state == 'present' else omit }}"
