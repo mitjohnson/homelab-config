@@ -9,7 +9,7 @@
   "prHourlyLimit": 0,
   "automerge": true,
   "automergeType": "pr",
-  "automergeStrategy": "rebase"
+  "automergeStrategy": "rebase",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
