@@ -9,12 +9,12 @@
   "prHourlyLimit": 0,
   "automerge": true,
   "automergeType": "pr",
-  "automergeStrategy": "rebase",
+  "automergeStrategy": "squash",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
-      "automergeStrategy": "rebase"
+      "automergeStrategy": "squash"
     }
   ],
   "ansible": {
