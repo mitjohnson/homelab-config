@@ -8,6 +8,8 @@ services:
       TZ: America/New_York
     volumes:
       - /srv/prod/home_assistant/config:/config
+    labels:
+      - "backup.sqlite-path=/srv/prod/home_assistant/config/home-assistant_v2.db"
 
   zwave-js-ui:
     container_name: zwave-js-ui

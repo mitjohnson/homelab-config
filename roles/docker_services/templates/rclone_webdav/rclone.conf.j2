@@ -1,0 +1,12 @@
+[b2]
+type = b2
+account = {{ rclone_b2_account_id }}
+key = {{ rclone_b2_application_key }}
+
+[b2-crypt]
+type = crypt
+remote = b2:{{ rclone_b2_bucket }}/{{ rclone_b2_path | default('backups') }}
+filename_encryption = standard
+directory_name_encryption = true
+password = {{ rclone_crypt_password }}
+password2 = {{ rclone_crypt_password2 }}

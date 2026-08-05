@@ -7,7 +7,7 @@
   when: service_state == 'present'
 
 - name: "Check if hook exists for {{ service_item }}"
-  become: true
+  become: false
   ansible.builtin.stat:
     path: "{{ role_path }}/tasks/hooks/{{ service_item }}.yml"
   register: docker_services_hook

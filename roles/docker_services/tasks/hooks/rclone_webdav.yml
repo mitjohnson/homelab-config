@@ -1,0 +1,39 @@
+---
+- name: Ensure rclone_webdav data/config directories exist
+  become: true
+  ansible.builtin.file:
+    path: "/srv/prod/rclone_webdav/{{ item }}"
+    state: directory
+    mode: "0700"
+  loop:
+    - data
+    - config
+
+- name: Ensure shared pg_dumps directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/pg_dumps
+    state: directory
+    mode: "0700"
+
+- name: Render rclone.conf
+  become: true
+  ansible.builtin.template:
+    src: "rclone_webdav/rclone.conf.j2"
+    dest: "/srv/prod/rclone_webdav/config/rclone.conf"
+    mode: "0600"
+
+- name: Render nightly backup script
+  become: true
+  ansible.builtin.template:
+    src: "rclone_webdav/nightly_backup.py.j2"
+    dest: "/srv/prod/rclone_webdav/nightly_backup.py"
+    mode: "0700"
+
+- name: Schedule nightly encrypted backup sync to B2
+  become: true
+  ansible.builtin.cron:
+    name: "rclone-b2-sync"
+    hour: "3"
+    minute: "0"
+    job: "python3 /srv/prod/rclone_webdav/nightly_backup.py >> /var/log/rclone-cron.log 2>&1"

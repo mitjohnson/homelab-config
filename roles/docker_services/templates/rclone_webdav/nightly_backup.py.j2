@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+import os
+import sqlite3
+import subprocess
+import sys
+import urllib.request
+from datetime import datetime, timezone
+
+NTFY_URL = "{{ ntfy_url }}"
+NTFY_TOPIC = "{{ ntfy_backup_topic }}"
+NTFY_TOKEN = "{{ ntfy_token }}"
+HOSTNAME = "{{ inventory_hostname }}"
+
+RCLONE_CONTAINER = "rclone-webdav"
+RCLONE_CONFIG = "/config/rclone.conf"
+PG_DUMP_DIR = "/srv/prod/pg_dumps"
+
+
+def log(msg):
+    print(f"[{datetime.now(timezone.utc).isoformat()}] {msg}", flush=True)
+
+
+def notify_failure(step, detail):
+    body = f"Nightly backup failed at step: {step}\n{detail}\nHost: {HOSTNAME}\nSee /var/log/rclone-cron.log"
+    req = urllib.request.Request(
+        f"https://{NTFY_URL}/{NTFY_TOPIC}",
+        data=body.encode(),
+        headers={
+            "Authorization": f"Bearer {NTFY_TOKEN}",
+            "Title": f"Backup FAILED: {HOSTNAME}",
+            "Priority": "urgent",
+            "Tags": "x,skull,rotating_light",
+        },
+        method="POST",
+    )
+    urllib.request.urlopen(req, timeout=10)
+
+
+def fail(step, detail):
+    log(f"ERROR during {step}: {detail}")
+    try:
+        notify_failure(step, detail)
+    except Exception as exc:
+        log(f"ALSO FAILED to send ntfy notification: {exc}")
+    sys.exit(1)
+
+
+def run(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def discover_sqlite_targets():
+    """Any running container labeled backup.sqlite-path=<host path> gets snapshotted.
+    Source of truth is each service's own compose file, not a separate list here."""
+    result = run(["docker", "ps", "--filter", "label=backup.sqlite-path", "--format", "{% raw %}{{.Names}}{% endraw %}"])
+    if result.returncode != 0:
+        fail("sqlite discovery", result.stderr)
+
+    targets = []
+    for name in result.stdout.split():
+        inspect = run(["docker", "inspect", name, "--format", '{% raw %}{{ index .Config.Labels "backup.sqlite-path" }}{% endraw %}'])
+        if inspect.returncode != 0:
+            fail("sqlite discovery", f"could not inspect {name}: {inspect.stderr}")
+        targets.append((name, inspect.stdout.strip()))
+    return targets
+
+
+def snapshot_sqlite_dbs():
+    for container, path in discover_sqlite_targets():
+        if not os.path.isfile(path):
+            fail("sqlite snapshot", f"{container} is running with backup.sqlite-path={path} but no file exists there")
+        log(f"Snapshotting {container} db at {path}")
+        try:
+            src = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+            dst = sqlite3.connect(f"{path}.backup")
+            with dst:
+                src.backup(dst)
+            src.close()
+            dst.close()
+        except sqlite3.Error as exc:
+            fail("sqlite snapshot", f"{container} ({path}): {exc}")
+
+
+def discover_pg_targets():
+    """Any running container labeled backup.pg-dump=true gets pg_dumpall'd.
+    Source of truth is each service's own compose file, not a separate list here."""
+    result = run(["docker", "ps", "--filter", "label=backup.pg-dump=true", "--format", "{% raw %}{{.Names}}{% endraw %}"])
+    if result.returncode != 0:
+        fail("postgres discovery", result.stderr)
+    return result.stdout.split()
+
+
+def dump_postgres_dbs():
+    targets = discover_pg_targets()
+    if not targets:
+        return
+    os.makedirs(PG_DUMP_DIR, exist_ok=True)
+    for container in targets:
+        inspect = run(["docker", "inspect", container, "--format", "{% raw %}{{ range .Config.Env }}{{ println . }}{{ end }}{% endraw %}"])
+        if inspect.returncode != 0:
+            fail("postgres dump", f"could not inspect {container}: {inspect.stderr}")
+        env = dict(line.split("=", 1) for line in inspect.stdout.splitlines() if "=" in line)
+        pg_user = env.get("POSTGRES_USER")
+        if not pg_user:
+            fail("postgres dump", f"{container} is labeled backup.pg-dump=true but has no POSTGRES_USER env")
+
+        log(f"Dumping all databases from {container} (user={pg_user})")
+        dump = run(["docker", "exec", container, "pg_dumpall", "-U", pg_user])
+        if dump.returncode != 0:
+            fail("postgres dump", f"{container}: {dump.stderr[-2000:]}")
+
+        dest = os.path.join(PG_DUMP_DIR, f"{container}.sql")
+        with open(dest, "w") as f:
+            f.write(dump.stdout)
+
+
+def rclone_sync(step, src, dest, extra_args=None):
+    cmd = [
+        "docker", "exec", RCLONE_CONTAINER, "rclone", "sync", src, dest,
+        "--config", RCLONE_CONFIG, "--log-level", "INFO",
+    ]
+    if extra_args:
+        cmd += extra_args
+    log(f"Running: {' '.join(cmd)}")
+    result = run(cmd)
+    if result.stdout:
+        log(result.stdout)
+    if result.returncode != 0:
+        fail(step, result.stderr[-2000:])
+
+
+def main():
+    snapshot_sqlite_dbs()
+    dump_postgres_dbs()
+    rclone_sync("webdav data sync", "/data", "b2-crypt:")
+    rclone_sync(
+        "host container data sync", "/hostdata", "b2-crypt:host-backups",
+        extra_args=[
+            "--exclude", "ollama/**",
+            "--exclude", "rclone_webdav/**",
+            "--exclude", "postgres/data/**",
+        ],
+    )
+    log("Backup run complete")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as exc:
+        fail("unexpected error", str(exc))

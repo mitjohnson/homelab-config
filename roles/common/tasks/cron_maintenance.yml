@@ -27,7 +27,7 @@
   ansible.builtin.cron:
     name: "daily-maintenance-pull"
     minute: "30"
-    hour: "4"
+    hour: "5"
     job: >
       ansible-pull -U https://github.com/{{ github_user }}/homelab-config.git
       -C main

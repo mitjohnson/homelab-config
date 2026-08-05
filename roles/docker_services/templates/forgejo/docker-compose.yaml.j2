@@ -22,6 +22,7 @@ services:
     ports:
       - "222:22"
     labels:
+      - "backup.sqlite-path=/srv/prod/forgejo/gitea/gitea.db"
       - "traefik.enable=true"
       - "traefik.http.routers.forgejo.tls=true"
       - "traefik.http.routers.forgejo.rule=Host(`git.{{ root_domain }}`)"

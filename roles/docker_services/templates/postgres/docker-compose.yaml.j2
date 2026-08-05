@@ -1,0 +1,22 @@
+---
+services:
+  postgres:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: {{ postgres_admin_password }}
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - /srv/prod/postgres/data:/var/lib/postgresql/data
+    shm_size: 128mb
+    restart: unless-stopped
+    labels:
+      - "backup.pg-dump=true"
+    networks:
+      - database
+
+networks:
+  database:
+    external: true

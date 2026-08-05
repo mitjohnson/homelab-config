@@ -8,6 +8,7 @@ services:
     volumes:
       - "/srv/prod/vaultwarden/data/:/data/"
     labels:
+      - "backup.sqlite-path=/srv/prod/vaultwarden/data/db.sqlite3"
       - "traefik.enable=true"
       - "traefik.http.routers.vaultwarden.tls=true"
       - "traefik.http.routers.vaultwarden.rule=Host(`vault.{{ root_domain }}`)"

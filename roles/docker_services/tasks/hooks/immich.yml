@@ -1,0 +1,7 @@
+---
+- name: Ensure immich library directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/immich/library
+    state: directory
+    mode: "0755"

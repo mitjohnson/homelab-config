@@ -1,0 +1,30 @@
+---
+services:
+  rclone-webdav:
+    image: rclone/rclone:1.75.0
+    container_name: rclone-webdav
+    command: >
+      serve webdav /data
+      --addr :8080
+      --user {{ rclone_webdav_username }}
+      --pass {{ rclone_webdav_password }}
+      --config /config/rclone.conf
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/rclone_webdav/data:/data
+      - /srv/prod/rclone_webdav/config:/config
+      - /srv/prod:/hostdata:ro
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rclone-webdav.tls=true"
+      - "traefik.http.routers.rclone-webdav.rule=Host(`webdav.{{ root_domain }}`)"
+      - "traefik.http.routers.rclone-webdav.entrypoints=https"
+      - "traefik.http.routers.rclone-webdav.service=rclone-webdav"
+      - "traefik.http.routers.rclone-webdav.middlewares=chain-internal@file"
+      - "traefik.http.services.rclone-webdav.loadbalancer.server.port=8080"
+
+networks:
+  proxy:
+    external: true

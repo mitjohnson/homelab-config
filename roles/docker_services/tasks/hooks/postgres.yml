@@ -1,0 +1,19 @@
+---
+- name: Ensure postgres data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/postgres/data
+    state: directory
+    mode: "0755"
+
+- name: Check if shared database network exists
+  become: true
+  ansible.builtin.command: docker network inspect database
+  register: docker_services_database_network_check
+  changed_when: false
+  failed_when: false
+
+- name: Create shared database network
+  become: true
+  ansible.builtin.command: docker network create database
+  when: docker_services_database_network_check.rc != 0

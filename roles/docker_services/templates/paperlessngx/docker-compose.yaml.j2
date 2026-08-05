@@ -29,6 +29,7 @@ services:
       PAPERLESS_REDIS: redis://172.16.238.10:6379
       PAPERLESS_URL: https://paperless.{{ root_domain }}
     labels:
+      - "backup.sqlite-path=/srv/prod/paperlessngx/data/db.sqlite3"
       - "traefik.enable=true"
       - "traefik.http.routers.paperless.entrypoints=https"
       - "traefik.http.routers.paperless.rule=Host(`paperless.{{ root_domain }}`)"

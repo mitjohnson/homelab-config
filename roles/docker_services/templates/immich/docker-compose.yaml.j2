@@ -1,0 +1,64 @@
+---
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:v3.1.0
+    container_name: immich_server
+    environment:
+      DB_HOSTNAME: postgres
+      DB_USERNAME: postgres
+      DB_PASSWORD: {{ postgres_admin_password }}
+      DB_DATABASE_NAME: immich
+      TZ: America/New_York
+    volumes:
+      - /srv/prod/immich/library:/data
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+    networks:
+      - proxy
+      - database
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immich.tls=true"
+      - "traefik.http.routers.immich.rule=Host(`photos.{{ root_domain }}`)"
+      - "traefik.http.routers.immich.entrypoints=https"
+      - "traefik.http.routers.immich.service=immich"
+      - "traefik.http.routers.immich.middlewares=chain-internal@file"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0-cuda
+    container_name: immich_machine_learning
+    volumes:
+      - model-cache:/cache
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - proxy
+
+  redis:
+    image: docker.io/valkey/valkey:9
+    container_name: immich_redis
+    restart: unless-stopped
+    healthcheck:
+      test: redis-cli ping || exit 1
+    networks:
+      - proxy
+
+volumes:
+  model-cache:
+
+networks:
+  proxy:
+    external: true
+  database:
+    external: true
