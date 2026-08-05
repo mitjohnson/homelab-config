@@ -8,12 +8,13 @@
 
 - name: Check if shared database network exists
   become: true
-  ansible.builtin.command: docker network inspect database
+  ansible.builtin.command: docker network inspect database  # noqa: command-instead-of-module
   register: docker_services_database_network_check
   changed_when: false
   failed_when: false
 
 - name: Create shared database network
   become: true
-  ansible.builtin.command: docker network create database
+  ansible.builtin.command: docker network create database  # noqa: command-instead-of-module
   when: docker_services_database_network_check.rc != 0
+  changed_when: true
