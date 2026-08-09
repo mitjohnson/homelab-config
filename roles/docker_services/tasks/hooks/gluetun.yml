@@ -1,0 +1,13 @@
+---
+- name: Check if shared vpn network exists
+  become: true
+  ansible.builtin.command: docker network inspect vpn  # noqa: command-instead-of-module
+  register: docker_services_vpn_network_check
+  changed_when: false
+  failed_when: false
+
+- name: Create shared vpn network
+  become: true
+  ansible.builtin.command: docker network create vpn  # noqa: command-instead-of-module
+  when: docker_services_vpn_network_check.rc != 0
+  changed_when: true

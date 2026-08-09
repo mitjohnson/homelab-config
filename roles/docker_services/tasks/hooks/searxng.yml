@@ -1,0 +1,7 @@
+---
+- name: Render searxng settings.yml
+  become: true
+  ansible.builtin.template:
+    src: "searxng/settings.yml.j2"
+    dest: "/srv/prod/searxng/settings.yml"
+    mode: "0600"

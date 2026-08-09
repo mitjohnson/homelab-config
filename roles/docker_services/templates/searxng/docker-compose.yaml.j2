@@ -1,0 +1,43 @@
+---
+services:
+  searxng:
+    image: docker.io/searxng/searxng:2026.8.5-1689cb1b5
+    container_name: searxng
+    volumes:
+      - /srv/prod/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-cache:/var/cache/searxng/
+    restart: unless-stopped
+    networks:
+      - proxy
+      - vpn
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.searxng.tls=true"
+      - "traefik.http.routers.searxng.rule=Host(`search.{{ root_domain }}`)"
+      - "traefik.http.routers.searxng.entrypoints=https"
+      - "traefik.http.routers.searxng.service=searxng"
+      - "traefik.http.routers.searxng.middlewares=chain-internal@file"
+      - "traefik.http.services.searxng.loadbalancer.server.port=8080"
+
+  valkey:
+    image: docker.io/valkey/valkey:9-alpine
+    container_name: searxng_valkey
+    command: valkey-server --save 30 1 --loglevel warning
+    volumes:
+      - searxng-valkey-data:/data/
+    restart: unless-stopped
+    networks:
+      - internal
+
+volumes:
+  searxng-cache:
+  searxng-valkey-data:
+
+networks:
+  proxy:
+    external: true
+  vpn:
+    external: true
+  internal:
+    external: false

@@ -1,0 +1,12 @@
+use_default_settings: true
+
+server:
+  secret_key: "{{ searxng_secret_key }}"
+
+valkey:
+  url: valkey://valkey:6379/0
+
+outgoing:
+  proxies:
+    all://:
+      - http://gluetun:8888
