@@ -6,6 +6,28 @@
     src: sshd_config.j2
     owner: root
     group: root
-    mode: "0600"
+    mode: '0600'
     backup: true
+  notify: Reload SSH
+
+- name: Enable post-quantum SSH key exchange in crypto-policies backend
+  tags: security
+  vars:
+    server_ssh_pq_kex_algorithms:
+      - sntrup761x25519-sha512@openssh.com
+      - curve25519-sha256
+      - curve25519-sha256@libssh.org
+      - ecdh-sha2-nistp256
+      - ecdh-sha2-nistp384
+      - ecdh-sha2-nistp521
+      - diffie-hellman-group-exchange-sha256
+      - diffie-hellman-group14-sha256
+      - diffie-hellman-group16-sha512
+      - diffie-hellman-group18-sha512
+  ansible.builtin.lineinfile:
+    path: /etc/crypto-policies/back-ends/opensshserver.config
+    regexp: '^KexAlgorithms '
+    line: "KexAlgorithms {{ server_ssh_pq_kex_algorithms | join(',') }}"
+    backup: true
+  when: ansible_facts['os_family'] == "RedHat"
   notify: Reload SSH
