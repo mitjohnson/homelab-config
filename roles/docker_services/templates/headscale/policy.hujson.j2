@@ -1,0 +1,21 @@
+{
+  "tagOwners": {
+    "tag:owner": ["{{ headscale_owner_user }}@"],
+    "tag:server": ["{{ headscale_owner_user }}@"]
+  },
+
+  "grants": [
+    // Free peer-to-peer between your own (untagged) devices.
+    {"src": ["autogroup:member"], "dst": ["autogroup:member"], "ip": ["*"]},
+
+    // Your tagged devices get full access to everything, including SSH -
+    // nothing else below grants port 22, so SSH stays owner-only.
+    {"src": ["tag:owner"], "dst": ["*"], "ip": ["*"]},
+
+    // Everyone else on the tailnet uses AdGuard for DNS.
+    {"src": ["autogroup:member"], "dst": ["tag:server"], "ip": ["udp:53", "tcp:53"]},
+
+    // Everyone else can reach the web services behind Traefik.
+    {"src": ["autogroup:member"], "dst": ["tag:server"], "ip": ["tcp:443"]}
+  ]
+}

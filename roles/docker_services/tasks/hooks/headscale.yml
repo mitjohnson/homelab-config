@@ -1,0 +1,31 @@
+---
+- name: Ensure headscale data directories exist
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0700"
+  loop:
+    - /srv/prod/headscale/data
+    - /srv/prod/headscale/headplane-data
+
+- name: Render headscale config.yaml
+  become: true
+  ansible.builtin.template:
+    src: "headscale/config.yaml.j2"
+    dest: "/srv/prod/headscale/config.yaml"
+    mode: "0600"
+
+- name: Render headscale ACL policy
+  become: true
+  ansible.builtin.template:
+    src: "headscale/policy.hujson.j2"
+    dest: "/srv/prod/headscale/policy.hujson"
+    mode: "0600"
+
+- name: Render headplane config.yaml
+  become: true
+  ansible.builtin.template:
+    src: "headscale/headplane-config.yaml.j2"
+    dest: "/srv/prod/headscale/headplane-config.yaml"
+    mode: "0600"

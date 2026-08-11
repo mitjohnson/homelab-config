@@ -1,0 +1,51 @@
+---
+services:
+  headscale:
+    image: docker.io/headscale/headscale:0.29.3
+    container_name: headscale
+    command: serve
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/headscale/config.yaml:/etc/headscale/config.yaml:ro
+      - /srv/prod/headscale/policy.hujson:/etc/headscale/policy.hujson:ro
+      - /srv/prod/headscale/data:/var/lib/headscale
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.headscale.tls=true"
+      - "traefik.http.routers.headscale.rule=Host(`vpn.{{ root_domain }}`)"
+      - "traefik.http.routers.headscale.entrypoints=https"
+      - "traefik.http.routers.headscale.service=headscale"
+      # cors is required for the Headplane UI (served at /admin on this same
+      # host) to be able to call the headscale API from the browser.
+      - "traefik.http.routers.headscale.middlewares=chain-public@file,headscale-cors"
+      - "traefik.http.services.headscale.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.headscale-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.headscale-cors.headers.accesscontrolallowmethods=GET,POST,PUT"
+      - "traefik.http.middlewares.headscale-cors.headers.accesscontrolalloworiginlist=https://vpn.{{ root_domain }}"
+      - "traefik.http.middlewares.headscale-cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.headscale-cors.headers.addvaryheader=true"
+
+  headplane:
+    image: ghcr.io/tale/headplane:0.7.0
+    container_name: headplane
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - /srv/prod/headscale/headplane-config.yaml:/etc/headplane/config.yaml:ro
+      - /srv/prod/headscale/config.yaml:/etc/headscale/config.yaml:ro
+      - /srv/prod/headscale/headplane-data:/var/lib/headplane
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.headplane.tls=true"
+      - "traefik.http.routers.headplane.rule=Host(`vpn.{{ root_domain }}`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.headplane.entrypoints=https"
+      - "traefik.http.routers.headplane.service=headplane"
+      - "traefik.http.routers.headplane.middlewares=chain-internal@file"
+      - "traefik.http.services.headplane.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true

@@ -20,3 +20,7 @@
 - name: Set up firewalld
   ansible.builtin.include_tasks: firewalld.yml
   when: ansible_facts['os_family'] == "RedHat"
+
+- name: Set up Tailscale
+  ansible.builtin.include_tasks: tailscale.yml
+  when: ansible_facts['os_family'] == "RedHat"

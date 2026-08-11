@@ -1,0 +1,18 @@
+---
+server:
+  host: "0.0.0.0"
+  port: 3000
+  base_url: "https://vpn.{{ root_domain }}"
+  cookie_secret: "{{ headplane_cookie_secret }}"
+  cookie_secure: true
+  data_path: /var/lib/headplane
+
+headscale:
+  url: "http://headscale:8080"
+  # Read-only: shows headscale's live config in the UI without letting
+  # Headplane edit it (that needs integration.docker + a docker.sock mount).
+  config_path: /etc/headscale/config.yaml
+
+# No server-side api_key: login happens per-session via a headscale API key
+# pasted into the Headplane login form (headscale apikeys create --expiration 90d).
+# integration.docker and oidc are left disabled for now.

@@ -1,0 +1,51 @@
+---
+- name: Add Tailscale repository
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/centos/{{ ansible_facts['distribution_major_version'] }}/tailscale.repo"
+    dest: /etc/yum.repos.d/tailscale.repo
+    mode: "0644"
+
+- name: Install tailscale
+  ansible.builtin.dnf:
+    name: tailscale
+    state: present
+    update_cache: true
+
+- name: Start tailscaled
+  ansible.builtin.service:
+    name: tailscaled
+    state: started
+    enabled: true
+
+# firewalld assigns new interfaces to a restrictive default zone. Without
+# this, tailscaled creates tailscale0 but firewalld silently drops traffic
+# to it (DNS, Traefik, SSH) even though headscale's ACLs and AdGuard are
+# both configured correctly - only "trusted" gets peers actually through.
+- name: Put tailscale0 in the trusted firewalld zone
+  ansible.posix.firewalld:
+    zone: trusted
+    interface: tailscale0
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Check current tailscale login state
+  ansible.builtin.command: tailscale status --json
+  register: server_tailscale_status
+  changed_when: false
+  failed_when: false
+
+# Requires headscale_server_authkey (a headscale preauth key). It can only be
+# generated once headscale itself is running, so this is a no-op until that
+# var is set - see the headscale deploy notes.
+- name: Join tailnet
+  ansible.builtin.command: >
+    tailscale up
+    --login-server=https://vpn.{{ root_domain }}
+    --authkey={{ headscale_server_authkey }}
+    --advertise-tags=tag:server
+  when:
+    - headscale_server_authkey | default('') | length > 0
+    - server_tailscale_status.rc != 0 or (server_tailscale_status.stdout | from_json).BackendState != "Running"
+  changed_when: true
+  no_log: true

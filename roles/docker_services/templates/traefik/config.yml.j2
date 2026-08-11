@@ -56,6 +56,8 @@ http:
           - "127.0.0.1/32" # Localhost
           - "{{ local_subnet }}"
           - "172.16.0.0/12" # Docker internal network
+          - "100.64.0.0/10" # Tailnet (headscale prefixes.v4)
+          - "fd7a:115c:a1e0::/48" # Tailnet (headscale prefixes.v6)
     chain-internal:
       chain:
         middlewares:
