@@ -33,19 +33,24 @@ http:
       compress: {}
     default-headers:
       headers:
-        browserXssFilter: true
+        customBrowserXSSValue: "0"
         contentTypeNosniff: true
-        stsSeconds: 2592000
+        stsSeconds: 31536000
         forceSTSHeader: true
         stsIncludeSubdomains: true
         stsPreload: true
         customFrameOptionsValue: SAMEORIGIN
         customRequestHeaders:
           X-Forwarded-Proto: https
-        referrerPolicy: "same-origin"
-        permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=()"
+        referrerPolicy: "no-referrer"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), midi=(), sync-xhr=(), display-capture=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), fullscreen=(self), autoplay=(self), picture-in-picture=(self)"
+        contentSecurityPolicyReportOnly: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' wss: https:; frame-src 'self'; frame-ancestors 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
         customResponseHeaders:
           X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          X-Permitted-Cross-Domain-Policies: "none"
+          X-DNS-Prefetch-Control: "off"
+          Cross-Origin-Resource-Policy: "same-site"
+          Cross-Origin-Opener-Policy: "same-origin-allow-popups"
     rate-limit:
       rateLimit:
         average: 100
@@ -74,9 +79,10 @@ http:
 tls:
   options:
     default:
-      minVersion: VersionTLS12
-      cipherSuites:
-        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      minVersion: VersionTLS13 # TLS 1.3 only; cipherSuites is ignored by Go's crypto/tls for 1.3 (fixed AEAD suites)
+      curvePreferences:
+        - X25519MLKEM768 # post-quantum hybrid (ML-KEM768 + X25519), used when the client supports it
+        - X25519
+        - CurveP384
+        - CurveP256
       sniStrict: true
