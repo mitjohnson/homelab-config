@@ -1,0 +1,7 @@
+---
+- name: Ensure home assistant config directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/home_assistant/config
+    state: directory
+    mode: "0700"

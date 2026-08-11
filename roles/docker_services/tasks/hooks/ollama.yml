@@ -1,0 +1,7 @@
+---
+- name: Ensure ollama data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/ollama
+    state: directory
+    mode: "0700"

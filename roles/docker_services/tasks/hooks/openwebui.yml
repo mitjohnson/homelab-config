@@ -1,0 +1,7 @@
+---
+- name: Ensure openwebui data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/openwebui
+    state: directory
+    mode: "0700"

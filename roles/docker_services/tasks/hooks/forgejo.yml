@@ -1,0 +1,7 @@
+---
+- name: Ensure forgejo data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/forgejo
+    state: directory
+    mode: "0700"

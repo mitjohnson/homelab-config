@@ -4,7 +4,7 @@
   ansible.builtin.file:
     path: /srv/prod/postgres/data
     state: directory
-    mode: "0755"
+    mode: "0700"
 
 - name: Check if shared database network exists
   become: true

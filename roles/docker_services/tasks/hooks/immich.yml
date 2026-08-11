@@ -4,4 +4,4 @@
   ansible.builtin.file:
     path: /srv/prod/immich/library
     state: directory
-    mode: "0755"
+    mode: "0700"

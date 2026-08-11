@@ -1,0 +1,10 @@
+---
+- name: Ensure adguard data directories exist
+  become: true
+  ansible.builtin.file:
+    path: "/srv/prod/adguard/{{ item }}"
+    state: directory
+    mode: "0700"
+  loop:
+    - work
+    - conf

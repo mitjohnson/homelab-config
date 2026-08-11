@@ -1,0 +1,7 @@
+---
+- name: Ensure vaultwarden data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/vaultwarden/data
+    state: directory
+    mode: "0700"
