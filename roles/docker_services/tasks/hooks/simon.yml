@@ -1,0 +1,7 @@
+---
+- name: Render simon .env file
+  become: true
+  ansible.builtin.template:
+    src: simon/env.j2
+    dest: /srv/prod/simon/.env
+    mode: '0600'

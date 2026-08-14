@@ -13,3 +13,8 @@
   ansible.builtin.service:
     name: firewalld
     state: reloaded
+
+- name: Restart crowdsec-firewall-bouncer
+  ansible.builtin.service:
+    name: crowdsec-firewall-bouncer
+    state: restarted

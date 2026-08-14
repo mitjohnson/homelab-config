@@ -1,0 +1,10 @@
+---
+source: docker
+docker_host: tcp://crowdsec-socket-proxy:2375
+use_container_labels: true # containers opt in via crowdsec.enable / crowdsec.labels.type
+---
+source: journalctl
+journalctl_filter:
+  - "--directory=/var/log/host/"
+labels:
+  type: syslog

@@ -14,5 +14,5 @@
     port: "{{ item.port | default(omit) }}"
     state: "{{ item.state }}"
     permanent: "{{ item.permanent }}"
-  loop: "{{ firewalld_rules }}"
+  loop: "{{ server_firewalld_rules }}"
   notify: Reload firewalld

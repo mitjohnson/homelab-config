@@ -20,14 +20,14 @@ services:
     tty: true
     stop_signal: SIGINT
     environment:
-      SESSION_SECRET: {{ SESSION_SECRET }}
+      SESSION_SECRET: {{ docker_services_session_secret }}
       TZ: America/New_York
     networks:
       - zwave
       - proxy
     devices:
       # Z-wave smart stick
-      - '{{ ZWAVE_SMARTSTICK }}:/dev/zwave'
+      - '{{ docker_services_zwave_smartstick }}:/dev/zwave'
     volumes:
       - zwave-config:/usr/src/app/store
     ports:

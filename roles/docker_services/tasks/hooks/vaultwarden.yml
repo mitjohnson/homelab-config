@@ -4,4 +4,5 @@
   ansible.builtin.file:
     path: /srv/prod/vaultwarden/data
     state: directory
-    mode: "0700"
+    mode: '0700'
+    access_time: preserve

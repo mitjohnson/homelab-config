@@ -1,0 +1,7 @@
+---
+- name: Render crowdsec acquis.yaml
+  become: true
+  ansible.builtin.template:
+    src: crowdsec/acquis.yaml.j2
+    dest: /srv/prod/crowdsec/acquis.yaml
+    mode: '0600'

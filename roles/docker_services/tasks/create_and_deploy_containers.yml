@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "/srv/prod/{{ service_item }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
   when: service_state == 'present'
 
 - name: "Check if hook exists for {{ service_item }}"

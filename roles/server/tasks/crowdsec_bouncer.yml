@@ -1,0 +1,25 @@
+---
+- name: Add CrowdSec RPM repository
+  ansible.builtin.get_url:
+    url: "https://packagecloud.io/install/repositories/crowdsec/crowdsec/config_file.repo?os=el&dist={{ ansible_facts['distribution_major_version'] }}"
+    dest: /etc/yum.repos.d/crowdsec_crowdsec.repo
+    mode: "0644"
+
+- name: Install crowdsec-firewall-bouncer
+  ansible.builtin.dnf:
+    name: crowdsec-firewall-bouncer-nftables
+    state: present
+    update_cache: true
+
+- name: Render crowdsec-firewall-bouncer config
+  ansible.builtin.template:
+    src: crowdsec_bouncer/crowdsec-firewall-bouncer.yaml.j2
+    dest: /etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml
+    mode: "0600"
+  notify: Restart crowdsec-firewall-bouncer
+
+- name: Start crowdsec-firewall-bouncer
+  ansible.builtin.service:
+    name: crowdsec-firewall-bouncer
+    state: started
+    enabled: true

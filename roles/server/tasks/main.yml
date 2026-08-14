@@ -24,3 +24,7 @@
 - name: Set up Tailscale
   ansible.builtin.include_tasks: tailscale.yml
   when: ansible_facts['os_family'] == "RedHat"
+
+- name: Set up crowdsec-firewall-bouncer
+  ansible.builtin.include_tasks: crowdsec_bouncer.yml
+  when: ansible_facts['os_family'] == "RedHat"

@@ -25,6 +25,8 @@ services:
       - /srv/prod/traefik/data/config.yml:/config.yml:ro
     labels:
       - "traefik.enable=true"
+      - "crowdsec.enable=true"
+      - "crowdsec.labels.type=traefik"
       - "traefik.http.routers.traefik-secure.entrypoints=https"
       - "traefik.http.routers.traefik-secure.rule=Host(`traefik.{{ root_domain }}`)"
       - "traefik.http.routers.traefik-secure.middlewares=chain-internal@file"

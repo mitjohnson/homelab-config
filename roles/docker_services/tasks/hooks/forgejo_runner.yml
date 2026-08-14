@@ -4,7 +4,7 @@
   ansible.builtin.file:
     dest: /srv/prod/forgejo_runner/data
     state: directory
-    mode: "0755"
+    mode: '0755'
     access_time: preserve
 
 - name: Create .cache directory.
@@ -12,7 +12,7 @@
   ansible.builtin.file:
     dest: /srv/prod/forgejo_runner/data/.cache
     state: directory
-    owner: "1001"
-    group: "1001"
-    mode: "0775"
+    owner: '1001'
+    group: '1001'
+    mode: '0775'
     access_time: preserve

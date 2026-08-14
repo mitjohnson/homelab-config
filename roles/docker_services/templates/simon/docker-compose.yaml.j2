@@ -5,6 +5,7 @@ services:
     container_name: simon
     environment:
       SIMON_SERVE_DIRS: "/fs/home,/fs/var/log,/fs/srv/prod,/fs/srv/dev"
+      SIMON_PASSWORD_HASH: "${SIMON_PASSWORD_HASH}"
     networks:
       - proxy
     volumes:
