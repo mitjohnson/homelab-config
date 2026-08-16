@@ -4,5 +4,6 @@
   ansible.builtin.file:
     path: /srv/prod/forgejo
     state: directory
+    mode: '0700'
     owner: '1000'
     group: '1000'
