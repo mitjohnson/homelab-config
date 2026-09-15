@@ -17,13 +17,6 @@
     dest: '/srv/prod/headscale/config.yaml'
     mode: '0600'
 
-- name: Render headscale ACL policy
-  become: true
-  ansible.builtin.template:
-    src: 'headscale/policy.hujson.j2'
-    dest: '/srv/prod/headscale/policy.hujson'
-    mode: '0600'
-
 - name: Render headplane config.yaml
   become: true
   ansible.builtin.template:
