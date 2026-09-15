@@ -49,3 +49,22 @@
     - server_tailscale_status.rc != 0 or (server_tailscale_status.stdout | from_json).BackendState != "Running"
   changed_when: true
   no_log: true
+
+- name: Ensure Taildrive share directory exists
+  ansible.builtin.file:
+    path: /srv/prod/taildrive/files
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+# tailscale drive is an ALPHA feature and hangs (rather than failing cleanly)
+# if the node doesn't yet have the drive:share attribute from the headscale
+# policy - bounded with async/poll and non-fatal so a stuck call here can't
+# stall the rest of this play.
+- name: Share directory via Taildrive
+  ansible.builtin.command: tailscale drive share files /srv/prod/taildrive/files
+  changed_when: true
+  async: 30
+  poll: 5
+  ignore_errors: true
