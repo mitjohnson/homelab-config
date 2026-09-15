@@ -1,0 +1,8 @@
+---
+- name: Ensure pocket_id data directory exists
+  become: true
+  ansible.builtin.file:
+    path: /srv/prod/pocket_id/data
+    state: directory
+    mode: '0700'
+    access_time: preserve

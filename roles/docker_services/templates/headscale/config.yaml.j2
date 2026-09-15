@@ -3,6 +3,10 @@ server_url: "https://vpn.{{ root_domain }}"
 listen_addr: "0.0.0.0:8080"
 metrics_listen_addr: "127.0.0.1:9090"
 
+trusted_proxies: [
+  "172.21.0.6/32"
+]
+
 noise:
   private_key_path: /var/lib/headscale/noise_private.key
 
@@ -35,5 +39,19 @@ dns:
       - "{{ headscale_server_tailnet_ip | default('', true) or ansible_host }}"
 
 policy:
-  mode: file
-  path: /etc/headscale/policy.hujson
+  mode: database
+
+taildrop:
+  enabled: true
+
+oidc:
+  issuer: "https://sso.{{ root_domain }}"
+  client_id: "{{ headscale_oidc_client_id }}"
+  client_secret: "{{ headscale_oidc_client_secret }}"
+  scope: ["openid", "profile", "email", "groups"]
+  allowed_groups:
+    - owner
+    - family
+  pkce:
+    enabled: true
+    method: S256

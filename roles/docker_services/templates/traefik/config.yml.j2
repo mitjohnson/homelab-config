@@ -6,7 +6,7 @@ http:
         - https
       rule: Host(`dns.{{ root_domain }}`)
       middlewares:
-        - chain-internal
+        - chain-protected-adguard
       tls: {}
       service: adguard
     home-assistant:
@@ -42,7 +42,15 @@ http:
         customFrameOptionsValue: SAMEORIGIN
         customRequestHeaders:
           X-Forwarded-Proto: https
-        referrerPolicy: "no-referrer"
+        # "no-referrer" (the stricter option) causes Chrome and Safari to
+        # send a literal "Origin: null" on same-origin POST form
+        # submissions (by spec, not a bug) - Django/allauth's CSRF check
+        # correctly refuses to trust that ("Origin checking failed - null
+        # does not match any trusted origins"), which broke paperless-ngx's
+        # signup/login forms. same-origin still strips the referrer for any
+        # cross-site request (the actual privacy goal) while keeping Origin
+        # intact same-origin, which is what CSRF checks need.
+        referrerPolicy: "same-origin"
         permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), midi=(), sync-xhr=(), display-capture=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), fullscreen=(self), autoplay=(self), picture-in-picture=(self)"
         contentSecurityPolicyReportOnly: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' wss: https:; frame-src 'self'; frame-ancestors 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
         customResponseHeaders:
@@ -76,6 +84,76 @@ http:
           - compress
           - default-headers
           - rate-limit
+    oidc-auth-owner:
+      plugin:
+        traefik-oidc-auth:
+          Secret: "{{ oidc_auth_cookie_secret }}"
+          Provider:
+            Url: "https://sso.{{ root_domain }}"
+            ClientId: "{{ forward_auth_oidc_client_id }}"
+            ClientSecret: "{{ forward_auth_oidc_client_secret }}"
+            UsePkce: true
+          Scopes: ["openid", "profile", "email", "groups"]
+          Authorization:
+            AssertClaims:
+              - Name: groups
+                AnyOf: ["owner"]
+          Headers:
+            - Name: X-Auth-User
+              Value: "{% raw %}{{ "{{" }} .claims.email {{ "}}" }}{% endraw %}"
+    oidc-auth-any:
+      plugin:
+        traefik-oidc-auth:
+          Secret: "{{ oidc_auth_cookie_secret }}"
+          Provider:
+            Url: "https://sso.{{ root_domain }}"
+            ClientId: "{{ forward_auth_oidc_client_id }}"
+            ClientSecret: "{{ forward_auth_oidc_client_secret }}"
+            UsePkce: true
+          Scopes: ["openid", "profile", "email", "groups"]
+          Authorization:
+            AssertClaims:
+              - Name: groups
+                AnyOf: ["owner", "family"]
+          Headers:
+            - Name: X-Auth-User
+              Value: "{% raw %}{{ "{{" }} .claims.email {{ "}}" }}{% endraw %}"
+    basicauth-adguard-relay:
+      headers:
+        customRequestHeaders:
+          Authorization: "Basic {{ (adguard_admin_username + ':' + adguard_admin_password) | b64encode }}"
+    chain-protected-internal:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - local-ipwhitelist
+          - oidc-auth-owner
+    chain-protected-public:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - oidc-auth-owner
+    chain-protected-adguard:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - local-ipwhitelist
+          - oidc-auth-owner
+          - basicauth-adguard-relay
+    chain-protected-internal-any:
+      chain:
+        middlewares:
+          - compress
+          - default-headers
+          - rate-limit
+          - local-ipwhitelist
+          - oidc-auth-any
 tls:
   options:
     default:

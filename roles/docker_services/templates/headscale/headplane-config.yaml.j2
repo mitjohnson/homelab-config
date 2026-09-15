@@ -12,7 +12,10 @@ headscale:
   # Read-only: shows headscale's live config in the UI without letting
   # Headplane edit it (that needs integration.docker + a docker.sock mount).
   config_path: /etc/headscale/config.yaml
+  api_key: "{{ headplane_headscale_api_key }}"
 
-# No server-side api_key: login happens per-session via a headscale API key
-# pasted into the Headplane login form (headscale apikeys create --expiration 90d).
-# integration.docker and oidc are left disabled for now.
+oidc:
+  issuer: "https://sso.{{ root_domain }}"
+  client_id: "{{ headscale_oidc_client_id }}"
+  client_secret: "{{ headscale_oidc_client_secret }}"
+  use_pkce: true

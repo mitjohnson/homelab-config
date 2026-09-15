@@ -1,7 +1,17 @@
 api:
   dashboard: true
   debug: false
-accessLog: {}
+accessLog:
+  format: json
+  fields:
+    headers:
+      names:
+        X-Auth-User: keep
+experimental:
+  plugins:
+    traefik-oidc-auth:
+      moduleName: "github.com/sevensolutions/traefik-oidc-auth"
+      version: "v0.21.0"
 entryPoints:
   http:
     address: ":80"

@@ -1,0 +1,36 @@
+---
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2.14.0
+    container_name: pocket-id
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      APP_URL: "https://sso.{{ root_domain }}"
+      TRUST_PROXY: "172.21.0.6/32"
+      ENCRYPTION_KEY: "{{ pocket_id_encryption_key }}"
+      ANALYTICS_DISABLED: "true"
+      # Invite-only: new accounts require a signup token you generate and
+      # share yourself, never an open public registration form.
+      ALLOW_USER_SIGNUPS: "withToken"
+    volumes:
+      - /srv/prod/pocket_id/data:/app/data
+    healthcheck:
+      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      interval: 90s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pocket-id.tls=true"
+      - "traefik.http.routers.pocket-id.rule=Host(`sso.{{ root_domain }}`)"
+      - "traefik.http.routers.pocket-id.entrypoints=https"
+      - "traefik.http.routers.pocket-id.service=pocket-id"
+      - "traefik.http.routers.pocket-id.middlewares=chain-public@file"
+      - "traefik.http.services.pocket-id.loadbalancer.server.port=1411"
+
+networks:
+  proxy:
+    external: true

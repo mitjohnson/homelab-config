@@ -25,12 +25,25 @@ services:
         aliases:
             - "paperless.{{ root_domain }}"
       backend:
+      database:
     environment:
+      PAPERLESS_SECRET_KEY: "{{ paperlessngx_secret_key | replace('$', '$$') }}"
       PAPERLESS_REDIS: redis://172.16.238.10:6379
       PAPERLESS_URL: https://paperless.{{ root_domain }}
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_DBHOST: postgres
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: "{{ paperlessngx_db_password | replace('$', '$$') }}"
+      PAPERLESS_APPS: "allauth.socialaccount.providers.openid_connect"
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: '{"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocketid","name":"Pocket ID","client_id":"{{ paperlessngx_oidc_client_id | replace("$", "$$") }}","secret":"{{ paperlessngx_oidc_client_secret | replace("$", "$$") }}","settings":{"server_url":"https://sso.{{ root_domain }}"}}]}}'
+      PAPERLESS_AI_ENABLED: "true"
+      PAPERLESS_AI_LLM_BACKEND: "ollama"
+      PAPERLESS_AI_LLM_MODEL: "qwen2.5:1.5b"
+      PAPERLESS_AI_LLM_ENDPOINT: "http://ollama:11434"
     labels:
-      - "backup.sqlite-path=/srv/prod/paperlessngx/data/db.sqlite3"
       - "traefik.enable=true"
+      - "traefik.http.routers.paperless.tls=true"
       - "traefik.http.routers.paperless.entrypoints=https"
       - "traefik.http.routers.paperless.rule=Host(`paperless.{{ root_domain }}`)"
       - "traefik.http.routers.paperless.service=paperless"
@@ -43,4 +56,6 @@ networks:
       config:
         - subnet: "172.16.238.0/24"
   proxy:
+    external: true
+  database:
     external: true

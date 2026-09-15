@@ -17,7 +17,7 @@ services:
       - "traefik.http.routers.searxng.rule=Host(`search.{{ root_domain }}`)"
       - "traefik.http.routers.searxng.entrypoints=https"
       - "traefik.http.routers.searxng.service=searxng"
-      - "traefik.http.routers.searxng.middlewares=chain-internal@file"
+      - "traefik.http.routers.searxng.middlewares=chain-protected-internal-any@file"
       - "traefik.http.services.searxng.loadbalancer.server.port=8080"
 
   valkey:

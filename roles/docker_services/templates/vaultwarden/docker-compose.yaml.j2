@@ -7,6 +7,15 @@ services:
       - proxy
     volumes:
       - "/srv/prod/vaultwarden/data/:/data/"
+    environment:
+      DOMAIN: "https://vault.{{ root_domain }}"
+      SSO_ENABLED: "true"
+      SSO_ONLY: "false"
+      SSO_CLIENT_ID: "{{ vaultwarden_oidc_client_id }}"
+      SSO_CLIENT_SECRET: "{{ vaultwarden_oidc_client_secret }}"
+      SSO_AUTHORITY: "https://sso.{{ root_domain }}"
+      SSO_SCOPES: "email profile groups"
+      SSO_PKCE: "true"
     labels:
       - "backup.sqlite-path=/srv/prod/vaultwarden/data/db.sqlite3"
       - "traefik.enable=true"
