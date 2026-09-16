@@ -67,4 +67,4 @@
   changed_when: true
   async: 30
   poll: 5
-  ignore_errors: true
+  failed_when: false
