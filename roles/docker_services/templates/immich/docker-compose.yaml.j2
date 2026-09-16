@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.immich.loadbalancer.server.port=2283"
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v3.2.0-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:v3.2.2-cuda
     container_name: immich_machine_learning
     volumes:
       - model-cache:/cache
