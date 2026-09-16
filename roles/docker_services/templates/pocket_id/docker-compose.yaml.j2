@@ -9,7 +9,7 @@ services:
     environment:
       APP_URL: "https://sso.{{ root_domain }}"
       TRUST_PROXY: "172.21.0.6/32"
-      ENCRYPTION_KEY: "{{ pocket_id_encryption_key }}"
+      ENCRYPTION_KEY: "{{ pocket_id_encryption_key | replace('$', '$$') }}"
       ANALYTICS_DISABLED: "true"
       # Invite-only: new accounts require a signup token you generate and
       # share yourself, never an open public registration form.

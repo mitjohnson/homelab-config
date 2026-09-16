@@ -5,7 +5,7 @@ services:
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: {{ postgres_admin_password }}
+      POSTGRES_PASSWORD: "{{ postgres_admin_password | replace('$', '$$') }}"
       POSTGRES_DB: immich
       POSTGRES_INITDB_ARGS: "--data-checksums"
     volumes:

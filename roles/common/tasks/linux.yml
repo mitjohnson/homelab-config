@@ -4,11 +4,14 @@
 
 - name: Install base packages.
   ansible.builtin.package:
-    name: "{{ common_packages }}"
+    name: '{{ common_packages }}'
     state: present
 
 - name: Setup Homebrew and neovim.
-  ansible.builtin.include_tasks: "{{ item }}"
+  ansible.builtin.include_tasks: '{{ user }}'
   loop:
     - homebrew.yml
     - neovim.yml
+  loop_control:
+    loop_var: user
+    label: '{{ user }}'

@@ -1,7 +1,15 @@
 ---
-- name: Add CrowdSec RPM repository
-  ansible.builtin.get_url:
+- name: Fetch CrowdSec RPM repository definition
+  ansible.builtin.uri:
     url: "https://packagecloud.io/install/repositories/crowdsec/crowdsec/config_file.repo?os=el&dist={{ ansible_facts['distribution_major_version'] }}"
+    return_content: true
+  register: server_crowdsec_repo
+  changed_when: false
+  check_mode: false
+
+- name: Add CrowdSec RPM repository
+  ansible.builtin.copy:
+    content: "{{ server_crowdsec_repo.content }}"
     dest: /etc/yum.repos.d/crowdsec_crowdsec.repo
     mode: "0644"
 

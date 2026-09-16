@@ -20,7 +20,7 @@ services:
     tty: true
     stop_signal: SIGINT
     environment:
-      SESSION_SECRET: {{ docker_services_session_secret }}
+      SESSION_SECRET: "{{ docker_services_session_secret | replace('$', '$$') }}"
       TZ: America/New_York
     networks:
       - zwave

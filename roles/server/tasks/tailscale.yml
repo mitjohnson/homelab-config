@@ -1,7 +1,15 @@
 ---
-- name: Add Tailscale repository
-  ansible.builtin.get_url:
+- name: Fetch Tailscale repository definition
+  ansible.builtin.uri:
     url: "https://pkgs.tailscale.com/stable/centos/{{ ansible_facts['distribution_major_version'] }}/tailscale.repo"
+    return_content: true
+  register: server_tailscale_repo
+  changed_when: false
+  check_mode: false
+
+- name: Add Tailscale repository
+  ansible.builtin.copy:
+    content: "{{ server_tailscale_repo.content }}"
     dest: /etc/yum.repos.d/tailscale.repo
     mode: "0644"
 
@@ -34,6 +42,7 @@
   register: server_tailscale_status
   changed_when: false
   failed_when: false
+  check_mode: false
 
 # Requires headscale_server_authkey (a headscale preauth key). It can only be
 # generated once headscale itself is running, so this is a no-op until that
@@ -58,12 +67,22 @@
     group: root
     mode: "0700"
 
+- name: List current Taildrive shares
+  ansible.builtin.command: tailscale drive list
+  register: server_taildrive_shares
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
 # tailscale drive is an ALPHA feature and hangs (rather than failing cleanly)
 # if the node doesn't yet have the drive:share attribute from the headscale
 # policy - bounded with async/poll and non-fatal so a stuck call here can't
-# stall the rest of this play.
+# stall the rest of this play. Skipped once the share already exists so a
+# normal run doesn't re-trigger the slow async call and report changed every
+# time.
 - name: Share directory via Taildrive
   ansible.builtin.command: tailscale drive share files /srv/prod/taildrive/files
+  when: server_taildrive_shares.rc != 0 or '/srv/prod/taildrive/files' not in server_taildrive_shares.stdout
   changed_when: true
   async: 30
   poll: 5

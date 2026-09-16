@@ -3,7 +3,7 @@ services:
     image: docker:dind
     container_name: 'docker_dind'
     privileged: 'true'
-    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false']
+    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false', '--dns={{ ansible_host }}']
     restart: 'unless-stopped'
 
   runner:

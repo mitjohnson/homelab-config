@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/linux crowdsecurity/sshd"
-      BOUNCER_KEY_firewall: "{{ crowdsec_bouncer_key }}"
+      BOUNCER_KEY_firewall: "{{ crowdsec_bouncer_key | replace('$', '$$') }}"
       DOCKER_HOST: tcp://crowdsec-socket-proxy:2375
     ports:
       - "127.0.0.1:8082:8080"
