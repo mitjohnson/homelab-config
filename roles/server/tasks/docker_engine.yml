@@ -24,11 +24,20 @@
     group: root
     mode: "0711"
 
-- name: Update docker data root.
+- name: Update docker daemon config.
   ansible.builtin.copy:
     dest: /etc/docker/daemon.json
     content: |
-      { "data-root": "/srv/prod/docker" }
+      {
+        "data-root": "/srv/prod/docker",
+        "dns": ["{{ ansible_host }}"],
+        "runtimes": {
+          "nvidia": {
+            "path": "nvidia-container-runtime",
+            "args": []
+          }
+        }
+      }
     mode: "0644"
   notify: restart-docker
 
